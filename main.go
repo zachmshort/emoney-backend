@@ -32,7 +32,6 @@ func main() {
 			"environment": map[string]bool{
 				"DATABASE_URL":  os.Getenv("DATABASE_URL") != "",
 				"DATABASE_NAME": os.Getenv("DATABASE_NAME") != "",
-				"JWT_SECRET":    os.Getenv("JWT_SECRET") != "",
 			},
 		})
 	})

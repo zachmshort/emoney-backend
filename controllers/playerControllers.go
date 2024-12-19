@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -12,6 +13,7 @@ import (
 
 func GetPlayersInRoom(c *gin.Context) {
 	roomCode := c.Param("roomCode")
+	fmt.Println(roomCode)
 
 	collection := config.DB.Collection("Player")
 	var players []models.Player
@@ -25,7 +27,9 @@ func GetPlayersInRoom(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode players"})
 		return
 	}
-
+	if len(players) == 0 {
+		c.JSON(http.StatusOK, "no players found wtf")
+	}
 	c.JSON(http.StatusOK, players)
 }
 
