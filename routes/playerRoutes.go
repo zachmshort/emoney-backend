@@ -2,17 +2,14 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
-	// "github.com/zachmshort/backend-ezh/controllers"
+	"github.com/zachmshort/monopoly-backend/controllers"
 )
 
 func PlayerRoutes(r *gin.Engine) {
-	// users := r.Group("/users")
-	// {
-	// 	// users.GET(":id", controllers.GetUserById)
-	// 	// users.GET(":id/locations", controllers.GetUserWithLocations)
-	// 	// users.GET(":id/orders", controllers.GetUserWithOrders)
-	// 	// users.DELETE(":id", controllers.DeleteUserById)
-	// 	// users.POST("/", controllers.CreateUser)
-	// }
-
+	player := r.Group("/player")
+	{
+		player.GET("/room/:roomCode", controllers.GetPlayersInRoom)
+		player.GET("/device/:deviceId", controllers.GetPlayerByDevice)
+		player.GET("/:playerId", controllers.GetPlayerDetails)
+	}
 }
