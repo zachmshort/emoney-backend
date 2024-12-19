@@ -5,7 +5,7 @@ import (
 	// "github.com/zachmshort/backend-ezh/controllers"
 )
 
-func UserRoutes(r *gin.Engine) {
+func PlayerRoutes(r *gin.Engine) {
 	// users := r.Group("/users")
 	// {
 	// 	// users.GET(":id", controllers.GetUserById)

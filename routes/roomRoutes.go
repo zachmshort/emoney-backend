@@ -5,7 +5,7 @@ import (
 	"github.com/zachmshort/monopoly-backend/controllers"
 )
 
-func AuthRoutes(r *gin.Engine) {
+func RoomRoutes(r *gin.Engine) {
 	auth := r.Group("/auth")
 	{
 		auth.POST("/create", controllers.CreateRoom)

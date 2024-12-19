@@ -46,8 +46,10 @@ func main() {
 	})
 
 	config.ConnectDB()
-	routes.AuthRoutes(r)
-	routes.UserRoutes(r)
+	routes.PropertyRoutes(r)
+	routes.RoomRoutes(r)
+	routes.PlayerRoutes(r)
+	routes.TransferRoutes(r)
 
 	port := os.Getenv("PORT")
 	if port == "" {

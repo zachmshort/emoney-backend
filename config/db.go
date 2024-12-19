@@ -63,7 +63,7 @@ func ValidateEnv() error {
 		log.Printf("Working directory: %s", wd)
 	}
 
-	required := []string{"DATABASE_URL", "DATABASE_NAME", "JWT_SECRET"}
+	required := []string{"DATABASE_URL", "DATABASE_NAME"}
 	missing := []string{}
 
 	for _, env := range required {
