@@ -16,10 +16,7 @@ func GetPlayersInRoom(c *gin.Context) {
 	roomCollection := config.DB.Collection("Room")
 	playerCollection := config.DB.Collection("Player")
 
-	var room struct {
-		ID primitive.ObjectID `bson:"_id"`
-	}
-
+	var room models.Room
 	err := roomCollection.FindOne(c, bson.M{"roomCode": roomCode}).Decode(&room)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
@@ -40,7 +37,10 @@ func GetPlayersInRoom(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, players)
+	c.JSON(http.StatusOK, gin.H{
+		"players": players,
+		"room":    room,
+	})
 }
 
 func GetPlayerByDevice(c *gin.Context) {
