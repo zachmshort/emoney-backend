@@ -13,23 +13,38 @@ import (
 
 func GetPlayersInRoom(c *gin.Context) {
 	roomCode := c.Param("roomCode")
-	fmt.Println(roomCode)
 
-	collection := config.DB.Collection("Player")
-	var players []models.Player
-	cursor, err := collection.Find(c, bson.M{"roomId": roomCode})
+	roomCollection := config.DB.Collection("Room")
+	playerCollection := config.DB.Collection("Player")
+
+	var room struct {
+		ID primitive.ObjectID `bson:"_id"`
+	}
+
+	err := roomCollection.FindOne(c, bson.M{"roomCode": roomCode}).Decode(&room)
 	if err != nil {
+		fmt.Println("Room not found:", err)
+		c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
+		return
+	}
+
+	query := bson.M{"roomId": room.ID}
+	fmt.Println("Querying players with:", query)
+
+	var players []models.Player
+	cursor, err := playerCollection.Find(c, query)
+	if err != nil {
+		fmt.Println("Error finding players:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get players"})
 		return
 	}
 
 	if err = cursor.All(c, &players); err != nil {
+		fmt.Println("Error decoding players:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode players"})
 		return
 	}
-	if len(players) == 0 {
-		c.JSON(http.StatusOK, "no players found wtf")
-	}
+
 	c.JSON(http.StatusOK, players)
 }
 
