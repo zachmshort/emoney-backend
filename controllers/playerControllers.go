@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -23,24 +22,20 @@ func GetPlayersInRoom(c *gin.Context) {
 
 	err := roomCollection.FindOne(c, bson.M{"roomCode": roomCode}).Decode(&room)
 	if err != nil {
-		fmt.Println("Room not found:", err)
 		c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
 		return
 	}
 
 	query := bson.M{"roomId": room.ID}
-	fmt.Println("Querying players with:", query)
 
 	var players []models.Player
 	cursor, err := playerCollection.Find(c, query)
 	if err != nil {
-		fmt.Println("Error finding players:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get players"})
 		return
 	}
 
 	if err = cursor.All(c, &players); err != nil {
-		fmt.Println("Error decoding players:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode players"})
 		return
 	}
