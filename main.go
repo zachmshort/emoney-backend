@@ -5,9 +5,6 @@ import (
 	"os"
 	"time"
 
-	// "time"
-
-	// "github.com/gin-contrib/cors"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/zachmshort/monopoly-backend/config"
@@ -15,7 +12,6 @@ import (
 )
 
 func main() {
-	log.Println("Starting application...")
 
 	if os.Getenv("GIN_MODE") == "release" {
 		gin.SetMode(gin.ReleaseMode)

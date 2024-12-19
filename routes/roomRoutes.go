@@ -6,10 +6,7 @@ import (
 )
 
 func RoomRoutes(r *gin.Engine) {
-	auth := r.Group("/auth")
-	{
-		auth.POST("/create", controllers.CreateRoom)
-		auth.POST("/join", controllers.JoinRoom)
-	}
-
+	r.POST("/room", controllers.CreateRoom)
+	// r.POST("/room/join", controllers.JoinRoom)
+	r.GET("/ws/:roomCode", controllers.HandleWebSocket)
 }

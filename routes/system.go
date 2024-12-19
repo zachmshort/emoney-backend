@@ -8,7 +8,7 @@ import (
 
 func SystemRoutes(r *gin.Engine) {
 	r.GET("/system/check", func(c *gin.Context) {
-		envVars := []string{"DATABASE_URL", "DATABASE_NAME", "JWT_SECRET"}
+		envVars := []string{"DATABASE_URL", "DATABASE_NAME"}
 		status := make(map[string]bool)
 
 		for _, env := range envVars {

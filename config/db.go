@@ -15,14 +15,12 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var DB *mongo.Client
+var DB *mongo.Database // Update this to store *mongo.Database
 
 func loadEnvFile() error {
-	// Get the current file's directory
 	_, filename, _, _ := runtime.Caller(0)
 	currentDir := filepath.Dir(filename)
 
-	// Try to load from different possible locations
 	envPaths := []string{
 		filepath.Join(currentDir, "..", ".env"), // From config dir
 		".env",                                  // From root dir
@@ -51,14 +49,12 @@ func loadEnvFile() error {
 }
 
 func ValidateEnv() error {
-	// Try to load .env file first
 	err := loadEnvFile()
 	if err != nil {
 		log.Printf("Warning: %v", err)
 		log.Println("Proceeding with system environment variables")
 	}
 
-	// Debug: Print working directory
 	if wd, err := os.Getwd(); err == nil {
 		log.Printf("Working directory: %s", wd)
 	}
@@ -71,7 +67,6 @@ func ValidateEnv() error {
 			missing = append(missing, env)
 			log.Printf("❌ Missing required environment variable: %s", env)
 		} else {
-			// Log that we found it (but not the value)
 			log.Printf("✅ Found environment variable: %s", env)
 		}
 	}
@@ -85,7 +80,6 @@ func ValidateEnv() error {
 }
 
 func ConnectDB() {
-	// Validate environment variables
 	if err := ValidateEnv(); err != nil {
 		log.Fatal(err)
 	}
@@ -97,17 +91,9 @@ func ConnectDB() {
 		log.Fatal("DATABASE_URL is empty")
 	}
 
-	// Add debug logging
-	log.Printf("MongoDB URI prefix: %s", mongoURI[:min(len(mongoURI), 20)])
-	log.Printf("Database name: %s", dbName)
-
-	// Initialize MongoDB client with options
 	clientOptions := options.Client().
 		ApplyURI(mongoURI).
-		SetServerAPIOptions(options.ServerAPI(options.ServerAPIVersion1)).
-		SetTimeout(10 * time.Second)
-
-	log.Printf("Attempting to connect to MongoDB database: %s", dbName)
+		SetServerAPIOptions(options.ServerAPI(options.ServerAPIVersion1))
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -119,20 +105,13 @@ func ConnectDB() {
 		log.Fatal("Failed to create MongoDB client: ", err)
 	}
 
-	// Test the connection
 	err = client.Ping(ctx, nil)
 	if err != nil {
 		log.Fatal("Failed to ping MongoDB: ", err)
 	}
 
 	log.Printf("Successfully connected to MongoDB!")
-	DB = client
-}
 
-// Helper function
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
+	// Store the database instance instead of client
+	DB = client.Database(dbName)
 }
