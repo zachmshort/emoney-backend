@@ -3,10 +3,12 @@ package main
 import (
 	"log"
 	"os"
+	"time"
 
 	// "time"
 
 	// "github.com/gin-contrib/cors"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/zachmshort/monopoly-backend/config"
 	"github.com/zachmshort/monopoly-backend/routes"
@@ -20,20 +22,16 @@ func main() {
 	}
 
 	r := gin.Default()
-	// r.Use(cors.New(cors.Config{
-	// 	AllowOrigins: []string{
-	// 		"http://localhost:3000",
-	// 		"https://ezhomesteading.com",
-	// 		"http://localhost:8081",
-	// 		"exp://172.20.10.7:8081",
-	// 		"exp://localhost:8081",
-	// 		"http://172.20.10.7:8081",
-	// 	},
-	// 	AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-	// 	AllowHeaders:     []string{"Origin", "Authorization", "Content-Type"},
-	// 	AllowCredentials: true,
-	// 	MaxAge:           12 * time.Hour,
-	// }))
+	r.Use(cors.New(cors.Config{
+		AllowOrigins: []string{
+			"http://localhost:3000",
+			"http://emoney.club",
+		},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Authorization", "Content-Type"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"status": "ok",
