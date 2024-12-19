@@ -24,7 +24,6 @@ func CreateRoom(c *gin.Context) {
 		return
 	}
 
-	// Change deviceID to be just a string
 	roomID := primitive.NewObjectID()
 	playerID := primitive.NewObjectID()
 
@@ -41,14 +40,14 @@ func CreateRoom(c *gin.Context) {
 	banker := models.Player{
 		ID:       playerID,
 		RoomID:   roomID,
-		DeviceID: requestBody.DeviceID, // Just use the string directly
+		DeviceID: requestBody.DeviceID,
 		IsBanker: true,
 		IsActive: true,
 		Balance:  1500,
 		Name:     requestBody.Name,
 		Color:    "#FF0000",
 	}
-	// Initialize properties
+
 	properties := make([]models.Property, len(config.DefaultProperties))
 	var interfaceSlice []interface{}
 	for i := range config.DefaultProperties {
@@ -58,13 +57,13 @@ func CreateRoom(c *gin.Context) {
 			PropertyIndex: i,
 			Houses:        0,
 			Hotel:         0,
+			HouseCost:     properties[i].HouseCost,
 			IsMortgaged:   false,
 			Images:        properties[i].Images,
 		}
 		interfaceSlice = append(interfaceSlice, properties[i])
 	}
 
-	// Start MongoDB transaction
 	session, err := config.DB.Client().StartSession()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to start session"})

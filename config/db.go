@@ -15,15 +15,15 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var DB *mongo.Database // Update this to store *mongo.Database
+var DB *mongo.Database
 
 func loadEnvFile() error {
 	_, filename, _, _ := runtime.Caller(0)
 	currentDir := filepath.Dir(filename)
 
 	envPaths := []string{
-		filepath.Join(currentDir, "..", ".env"), // From config dir
-		".env",                                  // From root dir
+		filepath.Join(currentDir, "..", ".env"),
+		".env",
 	}
 
 	var lastErr error
@@ -112,6 +112,5 @@ func ConnectDB() {
 
 	log.Printf("Successfully connected to MongoDB!")
 
-	// Store the database instance instead of client
 	DB = client.Database(dbName)
 }
