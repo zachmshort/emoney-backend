@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -26,6 +27,8 @@ var (
 
 func HandleWebSocket(c *gin.Context) {
 	roomCode := c.Param("code")
+	log.Printf("WebSocket connection attempt for room: %s", roomCode)
+
 	if roomCode == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Room code required"})
 		return
@@ -33,6 +36,7 @@ func HandleWebSocket(c *gin.Context) {
 
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
+		log.Printf("Failed to upgrade connection: %v", err)
 		return
 	}
 
@@ -42,8 +46,11 @@ func HandleWebSocket(c *gin.Context) {
 		PlayerID: "",
 	}
 
+	log.Printf("New client connected to room %s", roomCode)
 	Manager.AddClient(client)
+
 	defer func() {
+		log.Printf("Client disconnecting from room %s", roomCode)
 		Manager.RemoveClient(client)
 		conn.Close()
 		Manager.Broadcast(roomCode, Message{
@@ -53,7 +60,6 @@ func HandleWebSocket(c *gin.Context) {
 			},
 		})
 	}()
-
 	for {
 		var message Message
 		err := conn.ReadJSON(&message)
