@@ -7,12 +7,20 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-var (
-	upgrader = websocket.Upgrader{
-		CheckOrigin: func(r *http.Request) bool {
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		origin := r.Header.Get("Origin")
+		switch origin {
+		case "http://localhost:3000",
+			"https://emoney.club",
+			"https://www.emoney.club":
 			return true
-		},
-	}
+		default:
+			return false
+		}
+	},
+}
+var (
 	Manager = NewRoomManager()
 )
 

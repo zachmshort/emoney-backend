@@ -23,12 +23,9 @@ func main() {
 			"http://localhost:3000",
 			"https://emoney.club",
 			"https://www.emoney.club",
-			"ws://localhost:3000",
-			"wss://emoney.club",
-			"wss://www.emoney.club",
 		},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Authorization", "Content-Type"},
+		AllowHeaders:     []string{"Origin", "Authorization", "Content-Type", "Upgrade", "Connection"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
