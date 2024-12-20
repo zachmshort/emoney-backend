@@ -15,8 +15,9 @@ import (
 func CreateRoom(c *gin.Context) {
 
 	var requestBody struct {
-		Name string `json:"name" binding:"required"`
-		Code string `json:"code" binding:"required"`
+		Name  string `json:"name" binding:"required"`
+		Code  string `json:"code" binding:"required"`
+		Color string `json:"color" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&requestBody); err != nil {
@@ -44,7 +45,7 @@ func CreateRoom(c *gin.Context) {
 		IsActive: true,
 		Balance:  1500,
 		Name:     requestBody.Name,
-		Color:    "#FF0000",
+		Color:    requestBody.Color,
 	}
 
 	properties := make([]models.Property, len(config.DefaultProperties))
@@ -107,6 +108,7 @@ func CreateRoom(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"roomId":   room.ID,
 		"roomCode": room.RoomCode,
+
 		"playerId": banker.ID,
 	})
 }
@@ -144,6 +146,7 @@ func JoinRoom(c *gin.Context) {
 		c.JSON(http.StatusConflict, gin.H{"error": "Name or color already taken"})
 		return
 	}
+
 	newPlayerID := primitive.NewObjectID()
 	newPlayer := models.Player{
 		ID:       newPlayerID,
