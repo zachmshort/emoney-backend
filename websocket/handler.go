@@ -37,8 +37,9 @@ func HandleWebSocket(c *gin.Context) {
 	}
 
 	client := &Client{
-		Conn: conn,
-		Room: roomCode,
+		Conn:     conn,
+		Room:     roomCode,
+		PlayerID: "",
 	}
 
 	Manager.AddClient(client)
@@ -48,7 +49,7 @@ func HandleWebSocket(c *gin.Context) {
 		Manager.Broadcast(roomCode, Message{
 			Type: "PLAYER_LEFT",
 			Payload: map[string]string{
-				"deviceId": client.DeviceID,
+				"playerId": client.PlayerID,
 			},
 		})
 	}()
@@ -63,8 +64,8 @@ func HandleWebSocket(c *gin.Context) {
 		switch message.Type {
 		case "JOIN":
 			if payload, ok := message.Payload.(map[string]interface{}); ok {
-				if deviceId, ok := payload["deviceId"].(string); ok {
-					client.DeviceID = deviceId
+				if playerId, ok := payload["playerId"].(string); ok {
+					client.PlayerID = playerId
 					Manager.Broadcast(roomCode, Message{
 						Type:    "PLAYER_JOINED",
 						Payload: payload,

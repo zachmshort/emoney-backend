@@ -79,7 +79,6 @@ func (rm *RoomManager) handleTransfer(client *Client, message Message) error {
 		Amount:    amount,
 		Reason:    models.TransferReason(payload["reason"].(string)),
 		Type:      payload["type"].(string),
-		DeviceID:  client.DeviceID,
 		TimeStamp: time.Now(),
 		Status:    models.TransferPending,
 	}

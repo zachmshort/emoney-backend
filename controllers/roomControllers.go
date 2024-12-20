@@ -144,9 +144,9 @@ func JoinRoom(c *gin.Context) {
 		c.JSON(http.StatusConflict, gin.H{"error": "Name or color already taken"})
 		return
 	}
-
+	newPlayerID := primitive.NewObjectID()
 	newPlayer := models.Player{
-		ID:       primitive.NewObjectID(),
+		ID:       newPlayerID,
 		RoomID:   room.ID,
 		IsBanker: false,
 		IsActive: true,
@@ -155,7 +155,7 @@ func JoinRoom(c *gin.Context) {
 		Color:    requestBody.Color,
 	}
 
-	result, err := playerColl.InsertOne(c, newPlayer)
+	_, err = playerColl.InsertOne(c, newPlayer)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to join room"})
 		return
@@ -175,7 +175,7 @@ func JoinRoom(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message":  "Successfully joined room",
-		"playerId": result.InsertedID,
+		"playerId": newPlayerID.Hex(),
 		"players":  players,
 		"room":     room,
 	})

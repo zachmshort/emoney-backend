@@ -4,7 +4,7 @@ import "github.com/gorilla/websocket"
 
 type Client struct {
 	Conn     *websocket.Conn
-	DeviceID string
+	PlayerID string
 	Room     string
 }
 
