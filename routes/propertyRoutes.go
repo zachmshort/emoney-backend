@@ -11,5 +11,6 @@ func PropertyRoutes(r *gin.Engine) {
 		property.POST("/:id/player/:playerId", controllers.AddProperty)
 		property.DELETE("/:id/player/:playerId", controllers.RemoveProperty)
 		property.POST("/:id/player/:playerId/mortgage", controllers.MortgageProperty)
+		property.GET("/available/:roomCode", controllers.GetAvailableProperties)
 	}
 }
