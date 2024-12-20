@@ -9,6 +9,8 @@ type Property struct {
 	PropertyIndex int                `bson:"propertyIndex" json:"propertyIndex"`
 	Houses        int                `bson:"houses" json:"houses"`
 	HouseCost     int                `bson:"houseCost" json:"houseCost"`
+	Group         string             `bson:"group" json:"group"`
+	Color         string             `bson:"color" json:"color"`
 	Hotel         int                `bson:"hotel" json:"hotel"`
 	IsMortgaged   bool               `bson:"isMortgaged" json:"isMortgaged"`
 	Images        []string           `bson:"images" json:"images"`

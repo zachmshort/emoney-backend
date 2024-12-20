@@ -3,6 +3,7 @@ package config
 type PropertyConfig struct {
 	Name          string
 	Group         string
+	Color         string
 	Position      int
 	Price         int
 	RentPrices    []int
@@ -16,6 +17,7 @@ var DefaultProperties = []PropertyConfig{
 	{
 		Name:          "Mediterranean Avenue",
 		Group:         "brown",
+		Color:         "#955436",
 		Position:      1,
 		Price:         60,
 		RentPrices:    []int{2, 10, 30, 90, 160, 250},
@@ -26,6 +28,7 @@ var DefaultProperties = []PropertyConfig{
 	{
 		Name:          "Baltic Avenue",
 		Group:         "brown",
+		Color:         "#955436",
 		Position:      3,
 		Price:         60,
 		RentPrices:    []int{4, 20, 60, 180, 320, 450},
@@ -38,6 +41,7 @@ var DefaultProperties = []PropertyConfig{
 	{
 		Name:          "Oriental Avenue",
 		Group:         "light-blue",
+		Color:         "#AAE6E6",
 		Position:      6,
 		Price:         100,
 		RentPrices:    []int{6, 30, 90, 270, 400, 550},
@@ -48,6 +52,7 @@ var DefaultProperties = []PropertyConfig{
 	{
 		Name:          "Vermont Avenue",
 		Group:         "light-blue",
+		Color:         "#AAE6E6",
 		Position:      8,
 		Price:         100,
 		RentPrices:    []int{6, 30, 90, 270, 400, 550},
@@ -58,6 +63,7 @@ var DefaultProperties = []PropertyConfig{
 	{
 		Name:          "Connecticut Avenue",
 		Group:         "light-blue",
+		Color:         "#AAE6E6",
 		Position:      9,
 		Price:         120,
 		RentPrices:    []int{8, 40, 100, 300, 450, 600},
@@ -70,6 +76,7 @@ var DefaultProperties = []PropertyConfig{
 	{
 		Name:          "St. Charles Place",
 		Group:         "pink",
+		Color:         "#D93A96",
 		Position:      11,
 		Price:         140,
 		RentPrices:    []int{10, 50, 150, 450, 625, 750},
@@ -80,6 +87,7 @@ var DefaultProperties = []PropertyConfig{
 	{
 		Name:          "States Avenue",
 		Group:         "pink",
+		Color:         "#D93A96",
 		Position:      13,
 		Price:         140,
 		RentPrices:    []int{10, 50, 150, 450, 625, 750},
@@ -90,6 +98,7 @@ var DefaultProperties = []PropertyConfig{
 	{
 		Name:          "Virginia Avenue",
 		Group:         "pink",
+		Color:         "#D93A96",
 		Position:      14,
 		Price:         160,
 		RentPrices:    []int{12, 60, 180, 500, 700, 900},
@@ -102,6 +111,7 @@ var DefaultProperties = []PropertyConfig{
 	{
 		Name:          "St. James Place",
 		Group:         "orange",
+		Color:         "#F7921E",
 		Position:      16,
 		Price:         180,
 		RentPrices:    []int{14, 70, 200, 550, 750, 950},
@@ -112,6 +122,7 @@ var DefaultProperties = []PropertyConfig{
 	{
 		Name:          "Tennessee Avenue",
 		Group:         "orange",
+		Color:         "#F7921E",
 		Position:      18,
 		Price:         180,
 		RentPrices:    []int{14, 70, 200, 550, 750, 950},
@@ -122,6 +133,7 @@ var DefaultProperties = []PropertyConfig{
 	{
 		Name:          "New York Avenue",
 		Group:         "orange",
+		Color:         "#F7921E",
 		Position:      19,
 		Price:         200,
 		RentPrices:    []int{16, 80, 220, 600, 800, 1000},
@@ -134,6 +146,7 @@ var DefaultProperties = []PropertyConfig{
 	{
 		Name:          "Kentucky Avenue",
 		Group:         "red",
+		Color:         "#ED1B24",
 		Position:      21,
 		Price:         220,
 		RentPrices:    []int{18, 90, 250, 700, 875, 1050},
@@ -144,6 +157,7 @@ var DefaultProperties = []PropertyConfig{
 	{
 		Name:          "Indiana Avenue",
 		Group:         "red",
+		Color:         "#ED1B24",
 		Position:      23,
 		Price:         220,
 		RentPrices:    []int{18, 90, 250, 700, 875, 1050},
@@ -154,6 +168,7 @@ var DefaultProperties = []PropertyConfig{
 	{
 		Name:          "Illinois Avenue",
 		Group:         "red",
+		Color:         "#ED1B24",
 		Position:      24,
 		Price:         240,
 		RentPrices:    []int{20, 100, 300, 750, 925, 1100},
@@ -166,6 +181,7 @@ var DefaultProperties = []PropertyConfig{
 	{
 		Name:          "Atlantic Avenue",
 		Group:         "yellow",
+		Color:         "#FEF200",
 		Position:      26,
 		Price:         260,
 		RentPrices:    []int{22, 110, 330, 800, 975, 1150},
@@ -176,6 +192,7 @@ var DefaultProperties = []PropertyConfig{
 	{
 		Name:          "Ventnor Avenue",
 		Group:         "yellow",
+		Color:         "#FEF200",
 		Position:      27,
 		Price:         260,
 		RentPrices:    []int{22, 110, 330, 800, 975, 1150},
@@ -186,6 +203,7 @@ var DefaultProperties = []PropertyConfig{
 	{
 		Name:          "Marvin Gardens",
 		Group:         "yellow",
+		Color:         "#FEF200",
 		Position:      29,
 		Price:         280,
 		RentPrices:    []int{24, 120, 360, 850, 1025, 1200},
@@ -198,6 +216,7 @@ var DefaultProperties = []PropertyConfig{
 	{
 		Name:          "Pacific Avenue",
 		Group:         "green",
+		Color:         "#1FB25A",
 		Position:      31,
 		Price:         300,
 		RentPrices:    []int{26, 130, 390, 900, 1100, 1275},
@@ -208,6 +227,7 @@ var DefaultProperties = []PropertyConfig{
 	{
 		Name:          "North Carolina Avenue",
 		Group:         "green",
+		Color:         "#1FB25A",
 		Position:      32,
 		Price:         300,
 		RentPrices:    []int{26, 130, 390, 900, 1100, 1275},
@@ -218,6 +238,7 @@ var DefaultProperties = []PropertyConfig{
 	{
 		Name:          "Pennsylvania Avenue",
 		Group:         "green",
+		Color:         "#1FB25A",
 		Position:      34,
 		Price:         320,
 		RentPrices:    []int{28, 150, 450, 1000, 1200, 1400},
@@ -230,6 +251,7 @@ var DefaultProperties = []PropertyConfig{
 	{
 		Name:          "Park Place",
 		Group:         "dark-blue",
+		Color:         "#0072BB",
 		Position:      37,
 		Price:         350,
 		RentPrices:    []int{35, 175, 500, 1100, 1300, 1500},
@@ -240,6 +262,7 @@ var DefaultProperties = []PropertyConfig{
 	{
 		Name:          "Boardwalk",
 		Group:         "dark-blue",
+		Color:         "#0072BB",
 		Position:      39,
 		Price:         400,
 		RentPrices:    []int{50, 200, 600, 1400, 1700, 2000},
@@ -250,6 +273,7 @@ var DefaultProperties = []PropertyConfig{
 	{
 		Name:          "Reading Railroad",
 		Group:         "railroad",
+		Color:         "#000000",
 		Position:      5,
 		Price:         200,
 		RentPrices:    []int{25, 50, 100, 200},
@@ -259,6 +283,7 @@ var DefaultProperties = []PropertyConfig{
 	{
 		Name:          "Pennsylvania Railroad",
 		Group:         "railroad",
+		Color:         "#000000",
 		Position:      15,
 		Price:         200,
 		RentPrices:    []int{25, 50, 100, 200},
@@ -268,6 +293,7 @@ var DefaultProperties = []PropertyConfig{
 	{
 		Name:          "B. & O. Railroad",
 		Group:         "railroad",
+		Color:         "#000000",
 		Position:      25,
 		Price:         200,
 		RentPrices:    []int{25, 50, 100, 200},
@@ -277,6 +303,7 @@ var DefaultProperties = []PropertyConfig{
 	{
 		Name:          "Short Line",
 		Group:         "railroad",
+		Color:         "#000000",
 		Position:      35,
 		Price:         200,
 		RentPrices:    []int{25, 50, 100, 200},
@@ -288,6 +315,7 @@ var DefaultProperties = []PropertyConfig{
 	{
 		Name:          "Electric Company",
 		Group:         "utility",
+		Color:         "#959595",
 		Position:      12,
 		Price:         150,
 		RentPrices:    []int{4, 10}, // multiplier for dice roll (4x if 1 utility, 10x if both)
@@ -297,6 +325,7 @@ var DefaultProperties = []PropertyConfig{
 	{
 		Name:          "Water Works",
 		Group:         "utility",
+		Color:         "#959595",
 		Position:      28,
 		Price:         150,
 		RentPrices:    []int{4, 10}, // Multiplier for dice roll (4x if 1 utility, 10x if both)
