@@ -20,7 +20,7 @@ var DefaultProperties = []PropertyConfig{
 		Color:         "#955436",
 		Position:      1,
 		Price:         60,
-		RentPrices:    []int{2, 10, 30, 90, 160, 250},
+		RentPrices:    []int{2, 4, 10, 30, 90, 160, 250},
 		HouseCost:     50,
 		MortgageValue: 30,
 		Images:        []string{"mediterranean-avenue-front"},

@@ -3,6 +3,7 @@ package websocket
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strconv"
 	"sync"
 	"time"
@@ -58,7 +59,10 @@ func (rm *RoomManager) Broadcast(room string, message Message) {
 }
 
 func (rm *RoomManager) handleTransfer(client *Client, message Message) error {
+	log.Printf("Starting transfer handling for room: %s", client.Room)
+
 	payload, ok := message.Payload.(map[string]interface{})
+	log.Printf("Transfer payload received: %+v", payload)
 	if !ok {
 		return errors.New("invalid payload format")
 	}
@@ -68,16 +72,17 @@ func (rm *RoomManager) handleTransfer(client *Client, message Message) error {
 		return fmt.Errorf("invalid amount: %w", err)
 	}
 
-	roomID, err := primitive.ObjectIDFromHex(client.Room)
+	roomIdStr := payload["roomId"].(string)
+	roomObjID, err := primitive.ObjectIDFromHex(roomIdStr)
 	if err != nil {
-		return fmt.Errorf("invalid room ID: %w", err)
+		return fmt.Errorf("invalid room ID: %v", err)
 	}
 
 	transfer := models.Transfer{
 		ID:        primitive.NewObjectID(),
-		RoomID:    roomID,
+		RoomID:    roomObjID,
 		Amount:    amount,
-		Reason:    models.TransferReason(payload["reason"].(string)),
+		Reason:    payload["reason"].(string),
 		Type:      payload["type"].(string),
 		TimeStamp: time.Now(),
 		Status:    models.TransferPending,
@@ -110,11 +115,17 @@ func (rm *RoomManager) handleTransfer(client *Client, message Message) error {
 	}
 
 	transfer.Status = models.TransferCompleted
+	log.Printf("Transfer successful, broadcasting update to room: %s", roomIdStr)
 
 	rm.Broadcast(client.Room, Message{
-		Type:    "TRANSFER_COMPLETE",
-		Payload: transfer,
+		Type: "GAME_STATE_UPDATE",
+		Payload: map[string]interface{}{
+			"type":     "TRANSFER_COMPLETE",
+			"transfer": transfer,
+		},
 	})
+	log.Printf("Broadcast complete to room: %s", client.Room)
 
 	return nil
+
 }
