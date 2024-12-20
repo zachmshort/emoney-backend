@@ -9,6 +9,6 @@ func PlayerRoutes(r *gin.Engine) {
 	player := r.Group("/player")
 	{
 		player.GET("/room/:roomCode", controllers.GetPlayersInRoom)
-		player.GET("/:playerId", controllers.GetPlayerDetails)
+		player.GET("/:playerId/details", controllers.GetPlayerDetails)
 	}
 }
