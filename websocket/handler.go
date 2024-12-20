@@ -81,13 +81,13 @@ func HandleWebSocket(c *gin.Context) {
 			}
 		case "TRANSFER":
 			if err := Manager.handleTransfer(client, message); err != nil {
-				log.Printf("Transfer error: %v", err) // Add this
+				log.Printf("Transfer error: %v", err)
 				conn.WriteJSON(Message{
 					Type:    "ERROR",
 					Payload: err.Error(),
 				})
 			} else {
-				log.Printf("Transfer successful") // Add this
+				log.Printf("Transfer successful")
 			}
 		}
 	}
