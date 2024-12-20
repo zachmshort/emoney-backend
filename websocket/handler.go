@@ -66,6 +66,7 @@ func HandleWebSocket(c *gin.Context) {
 		if err != nil {
 			break
 		}
+		log.Printf("Received message type: %s with payload: %+v", message.Type, message.Payload)
 
 		switch message.Type {
 		case "JOIN":
@@ -80,10 +81,13 @@ func HandleWebSocket(c *gin.Context) {
 			}
 		case "TRANSFER":
 			if err := Manager.handleTransfer(client, message); err != nil {
+				log.Printf("Transfer error: %v", err) // Add this
 				conn.WriteJSON(Message{
 					Type:    "ERROR",
 					Payload: err.Error(),
 				})
+			} else {
+				log.Printf("Transfer successful") // Add this
 			}
 		}
 	}
