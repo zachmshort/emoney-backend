@@ -15,9 +15,8 @@ import (
 func CreateRoom(c *gin.Context) {
 
 	var requestBody struct {
-		Name     string `json:"name" binding:"required"`
-		DeviceID string `json:"deviceId" binding:"required"`
-		Code     string `json:"code" binding:"required"`
+		Name string `json:"name" binding:"required"`
+		Code string `json:"code" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&requestBody); err != nil {
@@ -41,7 +40,6 @@ func CreateRoom(c *gin.Context) {
 	banker := models.Player{
 		ID:       playerID,
 		RoomID:   roomID,
-		DeviceID: requestBody.DeviceID,
 		IsBanker: true,
 		IsActive: true,
 		Balance:  1500,
@@ -116,7 +114,6 @@ func JoinRoom(c *gin.Context) {
 	var requestBody struct {
 		RoomCode string `json:"roomCode" binding:"required"`
 		Name     string `json:"name" binding:"required"`
-		DeviceID string `json:"deviceId" binding:"required"`
 		Color    string `json:"color" binding:"required"`
 	}
 
@@ -151,7 +148,6 @@ func JoinRoom(c *gin.Context) {
 	newPlayer := models.Player{
 		ID:       primitive.NewObjectID(),
 		RoomID:   room.ID,
-		DeviceID: requestBody.DeviceID,
 		IsBanker: false,
 		IsActive: true,
 		Balance:  1500,
