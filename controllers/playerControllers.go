@@ -12,6 +12,7 @@ import (
 
 func GetPlayersInRoom(c *gin.Context) {
 	roomCode := c.Param("roomCode")
+	playerId := c.Query("playerId")
 
 	roomCollection := config.DB.Collection("Room")
 	playerCollection := config.DB.Collection("Player")
@@ -25,6 +26,31 @@ func GetPlayersInRoom(c *gin.Context) {
 
 	query := bson.M{"roomId": room.ID}
 
+	var existingPlayer *models.Player
+	if playerId != "" {
+		playerObjectID, err := primitive.ObjectIDFromHex(playerId)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid player ID"})
+			return
+		}
+
+		var player models.Player
+		err = playerCollection.FindOne(c, bson.M{
+			"_id":    playerObjectID,
+			"roomId": room.ID,
+		}).Decode(&player)
+
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error":   "Player not found in this room",
+				"isValid": false,
+			})
+			return
+		}
+
+		existingPlayer = &player
+	}
+
 	var players []models.Player
 	cursor, err := playerCollection.Find(c, query)
 	if err != nil {
@@ -37,24 +63,21 @@ func GetPlayersInRoom(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	response := gin.H{
 		"players": players,
 		"room":    room,
-	})
-}
-
-func GetPlayerByDevice(c *gin.Context) {
-	deviceId := c.Param("deviceId")
-
-	collection := config.DB.Collection("Player")
-	var player models.Player
-	err := collection.FindOne(c, bson.M{"deviceId": deviceId}).Decode(&player)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Player not found"})
-		return
 	}
 
-	c.JSON(http.StatusOK, player)
+	if existingPlayer != nil {
+		response["existingPlayer"] = map[string]interface{}{
+			"id":      existingPlayer.ID.Hex(),
+			"name":    existingPlayer.Name,
+			"color":   existingPlayer.Color,
+			"isValid": true,
+		}
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 func GetPlayerDetails(c *gin.Context) {
