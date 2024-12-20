@@ -19,13 +19,10 @@ func main() {
 
 	r := gin.Default()
 	r.Use(cors.New(cors.Config{
-		AllowOrigins: []string{
-			"http://localhost:3000",
-			"https://emoney.club",
-			"https://www.emoney.club",
-		},
+		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Authorization", "Content-Type", "Upgrade", "Connection"},
+		AllowWebSockets:  true,
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
