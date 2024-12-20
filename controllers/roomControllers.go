@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/zachmshort/monopoly-backend/config"
 	"github.com/zachmshort/monopoly-backend/models"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -109,5 +110,79 @@ func CreateRoom(c *gin.Context) {
 		"roomId":   room.ID,
 		"roomCode": room.RoomCode,
 		"playerId": banker.ID,
+	})
+}
+func JoinRoom(c *gin.Context) {
+	var requestBody struct {
+		RoomCode string `json:"roomCode" binding:"required"`
+		Name     string `json:"name" binding:"required"`
+		DeviceID string `json:"deviceId" binding:"required"`
+		Color    string `json:"color" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&requestBody); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	roomColl := config.DB.Collection("Room")
+	var room models.Room
+	err := roomColl.FindOne(c, bson.M{"roomCode": requestBody.RoomCode}).Decode(&room)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
+		return
+	}
+
+	playerColl := config.DB.Collection("Player")
+	existingPlayer, err := playerColl.CountDocuments(c, bson.M{
+		"roomId": room.ID,
+		"$or": []bson.M{
+			{"name": requestBody.Name},
+			{"color": requestBody.Color},
+		},
+	})
+
+	if existingPlayer > 0 {
+		c.JSON(http.StatusConflict, gin.H{"error": "Name or color already taken"})
+		return
+	}
+
+	// Create new player
+	newPlayer := models.Player{
+		ID:       primitive.NewObjectID(),
+		RoomID:   room.ID,
+		DeviceID: requestBody.DeviceID,
+		IsBanker: false,
+		IsActive: true,
+		Balance:  1500,
+		Name:     requestBody.Name,
+		Color:    requestBody.Color,
+	}
+
+	// Insert new player
+	result, err := playerColl.InsertOne(c, newPlayer)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to join room"})
+		return
+	}
+
+	// Get all players in room for response
+	var players []models.Player
+	cursor, err := playerColl.Find(c, bson.M{"roomId": room.ID})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get players"})
+		return
+	}
+
+	if err = cursor.All(c, &players); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode players"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":  "Successfully joined room",
+		"playerId": result.InsertedID,
+		"players":  players,
+		"room":     room,
 	})
 }
