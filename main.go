@@ -23,6 +23,9 @@ func main() {
 			"http://localhost:3000",
 			"https://emoney.club",
 			"https://www.emoney.club",
+			"ws://localhost:3000",
+			"wss://emoney.club",
+			"wss://www.emoney.club",
 		},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Authorization", "Content-Type"},
@@ -44,6 +47,7 @@ func main() {
 	routes.RoomRoutes(r)
 	routes.PlayerRoutes(r)
 	routes.TransferRoutes(r)
+	routes.WebSocketRoutes(r)
 
 	port := os.Getenv("PORT")
 	if port == "" {

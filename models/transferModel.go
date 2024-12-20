@@ -33,6 +33,6 @@ type Transfer struct {
 	Reason       TransferReason     `bson:"reason" json:"reason" validate:"required"`
 	TimeStamp    time.Time          `bson:"timestamp" json:"timestamp"`
 	Status       TransferStatus     `bson:"status" json:"status"`
-	CreatedAt    time.Time          `bson:"createdAt" json:"createdAt"`
-	UpdatedAt    time.Time          `bson:"updatedAt" json:"updatedAt"`
+	Type         string             `bson:"type" json:"type"` // SEND, REQUEST, ADD, SUBTRACT
+	DeviceID     string             `bson:"deviceId" json:"deviceId"`
 }
