@@ -110,6 +110,7 @@ func CreateRoom(c *gin.Context) {
 		"playerId": banker.ID,
 	})
 }
+
 func JoinRoom(c *gin.Context) {
 	var requestBody struct {
 		RoomCode string `json:"roomCode" binding:"required"`
@@ -144,7 +145,6 @@ func JoinRoom(c *gin.Context) {
 		return
 	}
 
-	// Create new player
 	newPlayer := models.Player{
 		ID:       primitive.NewObjectID(),
 		RoomID:   room.ID,
@@ -155,14 +155,12 @@ func JoinRoom(c *gin.Context) {
 		Color:    requestBody.Color,
 	}
 
-	// Insert new player
 	result, err := playerColl.InsertOne(c, newPlayer)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to join room"})
 		return
 	}
 
-	// Get all players in room for response
 	var players []models.Player
 	cursor, err := playerColl.Find(c, bson.M{"roomId": room.ID})
 	if err != nil {
