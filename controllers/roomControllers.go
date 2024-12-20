@@ -60,6 +60,7 @@ func CreateRoom(c *gin.Context) {
 			Group:         config.DefaultProperties[i].Group,
 			Hotel:         0,
 			HouseCost:     config.DefaultProperties[i].HouseCost,
+			RentPrices:    config.DefaultProperties[i].RentPrices,
 			IsMortgaged:   false,
 			Images:        config.DefaultProperties[i].Images,
 		}

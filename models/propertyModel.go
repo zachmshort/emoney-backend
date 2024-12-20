@@ -13,5 +13,6 @@ type Property struct {
 	Color         string             `bson:"color" json:"color"`
 	Hotel         int                `bson:"hotel" json:"hotel"`
 	IsMortgaged   bool               `bson:"isMortgaged" json:"isMortgaged"`
+	RentPrices    []int              `bson:"rentPrices" json:"rentPrices"`
 	Images        []string           `bson:"images" json:"images"`
 }
