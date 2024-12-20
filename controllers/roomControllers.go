@@ -57,9 +57,9 @@ func CreateRoom(c *gin.Context) {
 			PropertyIndex: i,
 			Houses:        0,
 			Hotel:         0,
-			HouseCost:     properties[i].HouseCost,
+			HouseCost:     config.DefaultProperties[i].HouseCost,
 			IsMortgaged:   false,
-			Images:        properties[i].Images,
+			Images:        config.DefaultProperties[i].Images,
 		}
 		interfaceSlice = append(interfaceSlice, properties[i])
 	}
