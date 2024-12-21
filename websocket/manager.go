@@ -129,3 +129,56 @@ func (rm *RoomManager) handleTransfer(client *Client, message Message) error {
 	return nil
 
 }
+
+func (rm *RoomManager) handlePropertyPurchase(client *Client, message Message) error {
+	log.Printf("Starting property purchase handling for room: %s", client.Room)
+
+	payload, ok := message.Payload.(map[string]interface{})
+	log.Printf("Property purchase payload received: %+v", payload)
+	if !ok {
+		return errors.New("invalid payload format")
+	}
+
+	priceFloat, ok := payload["price"].(float64)
+	if !ok {
+		return fmt.Errorf("invalid price format")
+	}
+	price := int(priceFloat)
+	log.Printf("Processed price: %d", price)
+
+	buyerID, err := primitive.ObjectIDFromHex(payload["buyerId"].(string))
+	if err != nil {
+		log.Printf("Invalid buyerId error: %v", err)
+		return fmt.Errorf("invalid buyerId: %w", err)
+	}
+	log.Printf("Processed buyerId: %s", buyerID.Hex())
+
+	propertyID, err := primitive.ObjectIDFromHex(payload["propertyId"].(string))
+	if err != nil {
+		log.Printf("Invalid propertyId error: %v", err)
+		return fmt.Errorf("invalid propertyId: %w", err)
+	}
+	log.Printf("Processed propertyId: %s", propertyID.Hex())
+
+	log.Printf("Attempting to update property %s with new owner %s", propertyID.Hex(), buyerID.Hex())
+	purchaseErr := controllers.PurchaseProperty(propertyID, buyerID, price)
+	if purchaseErr != nil {
+		log.Printf("Property update failed: %v", purchaseErr)
+		return purchaseErr
+	}
+	log.Printf("Property update successful")
+
+	log.Printf("Broadcasting update to room: %s", client.Room)
+	rm.Broadcast(client.Room, Message{
+		Type: "GAME_STATE_UPDATE",
+		Payload: map[string]interface{}{
+			"type":       "PROPERTY_BOUGHT",
+			"propertyId": propertyID.Hex(),
+			"buyerId":    buyerID.Hex(),
+			"price":      price,
+		},
+	})
+	log.Printf("Broadcast complete to room: %s", client.Room)
+
+	return nil
+}

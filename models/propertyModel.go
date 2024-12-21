@@ -1,6 +1,10 @@
 package models
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 type Property struct {
 	ID            primitive.ObjectID `bson:"_id" json:"id"`
@@ -17,4 +21,14 @@ type Property struct {
 	IsMortgaged   bool               `bson:"isMortgaged" json:"isMortgaged"`
 	RentPrices    []int              `bson:"rentPrices" json:"rentPrices"`
 	Images        []string           `bson:"images" json:"images"`
+}
+
+type PropertyPurchase struct {
+	ID         primitive.ObjectID `bson:"_id" json:"id"`
+	RoomID     primitive.ObjectID `bson:"roomId" json:"roomId"`
+	BuyerID    primitive.ObjectID `bson:"buyerId" json:"buyerId"`
+	PropertyID primitive.ObjectID `bson:"propertyId" json:"propertyId"`
+	TimeStamp  time.Time          `bson:"timestamp" json:"timestamp"`
+	Price      int                `bson:"price" json:"price"`
+	Status     string             `bson:"status" json:"status"`
 }

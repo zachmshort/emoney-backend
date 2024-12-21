@@ -1,17 +1,46 @@
 package controllers
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/zachmshort/monopoly-backend/config"
 	"github.com/zachmshort/monopoly-backend/models"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func MortgageProperty(c *gin.Context) {}
 func AddProperty(c *gin.Context)      {}
 func RemoveProperty(c *gin.Context)   {}
+
+func PurchaseProperty(propertyID, buyerID primitive.ObjectID, price int) error {
+	_, err := config.DB.Collection("Property").UpdateOne(
+		context.Background(),
+		bson.M{"_id": propertyID},
+		bson.M{"$set": bson.M{"playerId": buyerID}},
+	)
+	if err != nil {
+		return err
+	}
+
+	_, err = config.DB.Collection("Player").UpdateOne(
+		context.Background(),
+		bson.M{"_id": buyerID},
+		bson.M{"$inc": bson.M{"balance": -price}},
+	)
+	return err
+}
+
+func AssignOwnerShipProperty(propertyID, buyerID primitive.ObjectID) error {
+	_, err := config.DB.Collection("Property").UpdateOne(
+		context.Background(),
+		bson.M{"_id": propertyID},
+		bson.M{"$set": bson.M{"playerId": buyerID}},
+	)
+	return err
+}
 func GetAvailableProperties(c *gin.Context) {
 	roomCode := c.Param("roomCode")
 

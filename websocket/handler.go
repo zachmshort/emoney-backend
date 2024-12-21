@@ -79,6 +79,17 @@ func HandleWebSocket(c *gin.Context) {
 					})
 				}
 			}
+		case "PURCHASE_PROPERTY":
+			log.Printf("Entered purchase property")
+			if err := Manager.handlePropertyPurchase(client, message); err != nil {
+				log.Printf("Purchase error: %v", err)
+				conn.WriteJSON(Message{
+					Type:    "ERROR",
+					Payload: err.Error(),
+				})
+			} else {
+				log.Printf("Purchase successful")
+			}
 		case "TRANSFER":
 			if err := Manager.handleTransfer(client, message); err != nil {
 				log.Printf("Transfer error: %v", err)
