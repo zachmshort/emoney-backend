@@ -133,9 +133,9 @@ func (rm *RoomManager) handleTransfer(client *Client, message Message) error {
 	rm.Broadcast(client.Room, Message{
 		Type: "TRANSFER",
 		Payload: map[string]interface{}{
-			"type":     "TRANSFER",
-			"transfer": transfer,
-			"message":  fmt.Sprintf("%s just sent %s to %s ", fromPlayer.Name, strconv.Itoa(amount), toPlayer.Name),
+			"type":         "TRANSFER",
+			"transfer":     transfer,
+			"notification": fmt.Sprintf("%s just sent %s to %s ", fromPlayer.Name, strconv.Itoa(amount), toPlayer.Name),
 		},
 	})
 	// fmt.Printf("%s just sent $%s to %s for %s", fromPlayer.Name, strconv.Itoa(amount), toPlayer.Name, transfer.Reason)
