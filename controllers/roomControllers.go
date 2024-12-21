@@ -113,7 +113,6 @@ func CreateRoom(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"roomId":   room.ID,
 		"roomCode": room.RoomCode,
-
 		"playerId": banker.ID,
 	})
 }

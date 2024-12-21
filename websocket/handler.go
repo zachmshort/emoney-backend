@@ -1,11 +1,14 @@
 package websocket
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"github.com/zachmshort/monopoly-backend/controllers"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 var upgrader = websocket.Upgrader{
@@ -41,9 +44,10 @@ func HandleWebSocket(c *gin.Context) {
 	}
 
 	client := &Client{
-		Conn:     conn,
-		Room:     roomCode,
-		PlayerID: "",
+		Conn:       conn,
+		Room:       roomCode,
+		PlayerID:   "",
+		PlayerName: "",
 	}
 
 	log.Printf("New client connected to room %s", roomCode)
@@ -56,7 +60,8 @@ func HandleWebSocket(c *gin.Context) {
 		Manager.Broadcast(roomCode, Message{
 			Type: "PLAYER_LEFT",
 			Payload: map[string]string{
-				"playerId": client.PlayerID,
+				"playerId":     client.PlayerID,
+				"notification": fmt.Sprintf("%s has left the game", client.PlayerName),
 			},
 		})
 	}()
@@ -73,9 +78,28 @@ func HandleWebSocket(c *gin.Context) {
 			if payload, ok := message.Payload.(map[string]interface{}); ok {
 				if playerId, ok := payload["playerId"].(string); ok {
 					client.PlayerID = playerId
+
+					playerObjID, err := primitive.ObjectIDFromHex(playerId)
+					if err != nil {
+						log.Printf("Error converting player ID: %v", err)
+						continue
+					}
+
+					player, err := controllers.GetPlayer(playerObjID)
+					if err != nil {
+						log.Printf("Error fetching player: %v", err)
+						continue
+					}
+
+					client.PlayerName = player.Name
+
 					Manager.Broadcast(roomCode, Message{
-						Type:    "PLAYER_JOINED",
-						Payload: payload,
+						Type: "PLAYER_JOINED",
+						Payload: map[string]interface{}{
+							"playerId":     client.PlayerID,
+							"playerName":   client.PlayerName,
+							"notification": fmt.Sprintf("%s has joined the game", client.PlayerName),
+						},
 					})
 				}
 			}
