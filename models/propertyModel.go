@@ -11,6 +11,7 @@ type Property struct {
 	HouseCost     int                `bson:"houseCost" json:"houseCost"`
 	Group         string             `bson:"group" json:"group"`
 	Color         string             `bson:"color" json:"color"`
+	Price         int                `bson:"price" json:"price"`
 	Name          string             `bson:"name" json:"name"`
 	Hotel         int                `bson:"hotel" json:"hotel"`
 	IsMortgaged   bool               `bson:"isMortgaged" json:"isMortgaged"`
