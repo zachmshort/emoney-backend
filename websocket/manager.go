@@ -116,12 +116,26 @@ func (rm *RoomManager) handleTransfer(client *Client, message Message) error {
 
 	transfer.Status = models.TransferCompleted
 	log.Printf("Transfer successful, broadcasting update to room: %s", roomIdStr)
+	var fromPlayer, toPlayer *models.Player
+
+	fromPlayer, err = controllers.GetPlayer(transfer.FromPlayerID)
+	if err != nil {
+		log.Printf("Failed to get from player details: %v", err)
+		return err
+	}
+
+	toPlayer, err = controllers.GetPlayer(transfer.ToPlayerID)
+	if err != nil {
+		log.Printf("Failed to get to player details: %v", err)
+		return err
+	}
 
 	rm.Broadcast(client.Room, Message{
-		Type: "GAME_STATE_UPDATE",
+		Type: "TRANSFER",
 		Payload: map[string]interface{}{
-			"type":     "TRANSFER_COMPLETE",
+			"type":     "TRANSFER",
 			"transfer": transfer,
+			"message":  fmt.Sprintf("%s just sent %s to %s ", fromPlayer.Name, strconv.Itoa(amount), toPlayer.Name),
 		},
 	})
 	log.Printf("Broadcast complete to room: %s", client.Room)

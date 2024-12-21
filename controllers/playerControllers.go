@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -110,4 +112,14 @@ func GetPlayerDetails(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response)
+}
+
+func GetPlayer(buyerID primitive.ObjectID) (*models.Player, error) {
+	var buyer models.Player
+	err := config.DB.Collection("Player").FindOne(context.Background(), bson.M{"_id": buyerID}).Decode(&buyer)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find buyer: %w", err)
+	}
+
+	return &buyer, nil
 }
