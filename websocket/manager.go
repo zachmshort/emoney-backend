@@ -138,7 +138,8 @@ func (rm *RoomManager) handleTransfer(client *Client, message Message) error {
 			"message":  fmt.Sprintf("%s just sent %s to %s ", fromPlayer.Name, strconv.Itoa(amount), toPlayer.Name),
 		},
 	})
-	log.Printf("Broadcast complete to room: %s", client.Room)
+	// fmt.Printf("%s just sent $%s to %s for %s", fromPlayer.Name, strconv.Itoa(amount), toPlayer.Name, transfer.Reason)
+	fmt.Printf("BY ITSELF %s BY ITSELF", transfer.Reason)
 
 	return nil
 
