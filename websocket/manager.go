@@ -135,16 +135,81 @@ func (rm *RoomManager) handleTransfer(client *Client, message Message) error {
 		Payload: map[string]interface{}{
 			"type":         "TRANSFER",
 			"transfer":     transfer,
-			"notification": fmt.Sprintf("%s just sent %s to %s ", fromPlayer.Name, strconv.Itoa(amount), toPlayer.Name),
+			"notification": fmt.Sprintf("%s just sent $%s to %s for %s", fromPlayer.Name, strconv.Itoa(amount), toPlayer.Name, transfer.Reason),
 		},
 	})
-	// fmt.Printf("%s just sent $%s to %s for %s", fromPlayer.Name, strconv.Itoa(amount), toPlayer.Name, transfer.Reason)
 	fmt.Printf("BY ITSELF %s BY ITSELF", transfer.Reason)
 
 	return nil
 
 }
 
+func (rm *RoomManager) freeParking(client *Client, message Message) error {
+	log.Printf("Starting free parking handler for room: %s", client.Room)
+
+	payload, ok := message.Payload.(map[string]interface{})
+	log.Printf("Free parking payload received: %+v", payload)
+	if !ok {
+		return errors.New("invalid payload format")
+	}
+
+	amount, err := strconv.Atoi(payload["amount"].(string))
+	if err != nil {
+		return fmt.Errorf("invalid amount: %w", err)
+	}
+
+	roomIdStr := payload["roomId"].(string)
+	roomObjID, err := primitive.ObjectIDFromHex(roomIdStr)
+	if err != nil {
+		return fmt.Errorf("invalid room ID: %v", err)
+	}
+
+	actionType := payload["type"].(string)
+	var notification string
+
+	switch actionType {
+	case "ADD":
+		err = controllers.UpdateFreeParkingBalance(roomObjID, amount, true)
+		if err != nil {
+			return fmt.Errorf("failed to add to free parking: %w", err)
+		}
+		notification = fmt.Sprintf("$%d was added to Free Parking", amount)
+
+	case "REMOVE":
+		playerId := payload["playerId"].(string)
+		playerObjID, err := primitive.ObjectIDFromHex(playerId)
+		if err != nil {
+			return fmt.Errorf("invalid player ID: %w", err)
+		}
+
+		player, err := controllers.GetPlayer(playerObjID)
+		if err != nil {
+			return fmt.Errorf("failed to get player details: %w", err)
+		}
+
+		err = controllers.PayoutFreeParking(roomObjID, playerObjID, amount)
+		if err != nil {
+			return fmt.Errorf("failed to payout free parking: %w", err)
+		}
+		notification = fmt.Sprintf("%s collected $%d from Free Parking!", player.Name, amount)
+
+	default:
+		return fmt.Errorf("invalid free parking action type: %s", actionType)
+	}
+
+	rm.Broadcast(client.Room, Message{
+		Type: "GAME_STATE_UPDATE",
+		Payload: map[string]interface{}{
+			"type":         "FREE_PARKING_UPDATE",
+			"amount":       amount,
+			"actionType":   actionType,
+			"notification": notification,
+		},
+	})
+	log.Printf("Free parking update broadcast complete for room: %s", client.Room)
+
+	return nil
+}
 func (rm *RoomManager) handlePropertyPurchase(client *Client, message Message) error {
 	log.Printf("Starting property purchase handling for room: %s", client.Room)
 

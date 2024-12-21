@@ -10,6 +10,7 @@ import (
 	"github.com/zachmshort/monopoly-backend/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func GetPlayersInRoom(c *gin.Context) {
@@ -122,4 +123,56 @@ func GetPlayer(buyerID primitive.ObjectID) (*models.Player, error) {
 	}
 
 	return &buyer, nil
+}
+
+func UpdateFreeParkingBalance(roomID primitive.ObjectID, amount int, isAdd bool) error {
+	updateOperation := "$inc"
+	if !isAdd {
+		amount = -amount
+	}
+
+	_, err := config.DB.Collection("Room").UpdateOne(
+		context.Background(),
+		bson.M{"_id": roomID},
+		bson.M{updateOperation: bson.M{"freeParking": amount}},
+	)
+	return err
+}
+
+func PayoutFreeParking(roomID, playerID primitive.ObjectID, amount int) error {
+	session, err := config.DB.Client().StartSession()
+	if err != nil {
+		return fmt.Errorf("failed to start session: %w", err)
+	}
+	defer session.EndSession(context.Background())
+
+	_, err = session.WithTransaction(context.Background(), func(ctx mongo.SessionContext) (interface{}, error) {
+		var room models.Room
+		err := config.DB.Collection("Room").FindOne(ctx, bson.M{"_id": roomID}).Decode(&room)
+		if err != nil {
+			return nil, fmt.Errorf("failed to find room: %w", err)
+		}
+
+		if room.FreeParking < amount {
+			return nil, fmt.Errorf("insufficient funds in free parking")
+		}
+
+		err = UpdateFreeParkingBalance(roomID, amount, false)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = config.DB.Collection("Player").UpdateOne(
+			ctx,
+			bson.M{"_id": playerID},
+			bson.M{"$inc": bson.M{"balance": amount}},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to update player balance: %w", err)
+		}
+
+		return nil, nil
+	})
+
+	return err
 }

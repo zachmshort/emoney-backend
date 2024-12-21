@@ -10,7 +10,7 @@ type Room struct {
 	ID          primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	RoomCode    string             `bson:"roomCode" json:"roomCode"`
 	BankerId    primitive.ObjectID `bson:"bankerId" json:"bankerId"`
-	FreeParking int32              `bson:"freeParking" json:"freeParking"`
+	FreeParking int                `bson:"freeParking" json:"freeParking"`
 	IsActive    bool               `bson:"isActive" json:"isActive"`
 	CreatedAt   time.Time          `bson:"createdAt" json:"createdAt"`
 	UpdatedAt   time.Time          `bson:"updatedAt" json:"updatedAt"`

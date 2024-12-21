@@ -114,6 +114,17 @@ func HandleWebSocket(c *gin.Context) {
 			} else {
 				log.Printf("Purchase successful")
 			}
+		case "FREE_PARKING":
+			log.Printf("Entered add to free parking")
+			if err := Manager.freeParking(client, message); err != nil {
+				log.Printf("Purchase error: %v", err)
+				conn.WriteJSON(Message{
+					Type:    "ERROR",
+					Payload: err.Error(),
+				})
+			} else {
+				log.Printf("Purchase successful")
+			}
 		case "TRANSFER":
 			if err := Manager.handleTransfer(client, message); err != nil {
 				log.Printf("Transfer error: %v", err)
