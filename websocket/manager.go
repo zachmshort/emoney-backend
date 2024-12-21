@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -8,9 +9,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/zachmshort/monopoly-backend/config"
 	"github.com/zachmshort/monopoly-backend/controllers"
 	"github.com/zachmshort/monopoly-backend/models"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type RoomManager struct {
@@ -164,43 +168,96 @@ func (rm *RoomManager) freeParking(client *Client, message Message) error {
 		return fmt.Errorf("invalid room ID: %v", err)
 	}
 
+	playerId := payload["playerId"].(string)
+	playerObjID, err := primitive.ObjectIDFromHex(playerId)
+	if err != nil {
+		return fmt.Errorf("invalid player ID: %w", err)
+	}
+
+	player, err := controllers.GetPlayer(playerObjID)
+	if err != nil {
+		return fmt.Errorf("failed to get player details: %w", err)
+	}
+
 	actionType := payload["type"].(string)
 	var notification string
 
-	switch actionType {
-	case "ADD":
-		err = controllers.UpdateFreeParkingBalance(roomObjID, amount, true)
-		if err != nil {
-			return fmt.Errorf("failed to add to free parking: %w", err)
-		}
-		notification = fmt.Sprintf("$%d was added to Free Parking", amount)
+	session, err := config.DB.Client().StartSession()
+	if err != nil {
+		return fmt.Errorf("failed to start session: %w", err)
+	}
+	defer session.EndSession(context.Background())
 
-	case "REMOVE":
-		playerId := payload["playerId"].(string)
-		playerObjID, err := primitive.ObjectIDFromHex(playerId)
-		if err != nil {
-			return fmt.Errorf("invalid player ID: %w", err)
+	_, err = session.WithTransaction(context.Background(), func(ctx mongo.SessionContext) (interface{}, error) {
+		switch actionType {
+		case "ADD":
+			if player.Balance < amount {
+				return nil, fmt.Errorf("insufficient funds to contribute to free parking")
+			}
+
+			_, err = config.DB.Collection("Player").UpdateOne(
+				ctx,
+				bson.M{"_id": playerObjID},
+				bson.M{"$inc": bson.M{"balance": -amount}},
+			)
+			if err != nil {
+				return nil, fmt.Errorf("failed to update player balance: %w", err)
+			}
+
+			_, err = config.DB.Collection("Room").UpdateOne(
+				ctx,
+				bson.M{"_id": roomObjID},
+				bson.M{"$inc": bson.M{"freeParking": amount}},
+			)
+			if err != nil {
+				return nil, fmt.Errorf("failed to update free parking: %w", err)
+			}
+
+			notification = fmt.Sprintf("%s added $%d to Free Parking", player.Name, amount)
+
+		case "REMOVE":
+			var room models.Room
+			err := config.DB.Collection("Room").FindOne(ctx, bson.M{"_id": roomObjID}).Decode(&room)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get room details: %w", err)
+			}
+
+			if room.FreeParking < amount {
+				return nil, fmt.Errorf("insufficient funds in free parking")
+			}
+
+			_, err = config.DB.Collection("Room").UpdateOne(
+				ctx,
+				bson.M{"_id": roomObjID},
+				bson.M{"$inc": bson.M{"freeParking": -amount}},
+			)
+			if err != nil {
+				return nil, fmt.Errorf("failed to update free parking: %w", err)
+			}
+
+			_, err = config.DB.Collection("Player").UpdateOne(
+				ctx,
+				bson.M{"_id": playerObjID},
+				bson.M{"$inc": bson.M{"balance": amount}},
+			)
+			if err != nil {
+				return nil, fmt.Errorf("failed to update player balance: %w", err)
+			}
+
+			notification = fmt.Sprintf("%s collected $%d from Free Parking", player.Name, amount)
 		}
 
-		player, err := controllers.GetPlayer(playerObjID)
-		if err != nil {
-			return fmt.Errorf("failed to get player details: %w", err)
-		}
+		return nil, nil
+	})
 
-		err = controllers.PayoutFreeParking(roomObjID, playerObjID, amount)
-		if err != nil {
-			return fmt.Errorf("failed to payout free parking: %w", err)
-		}
-		notification = fmt.Sprintf("%s collected $%d from Free Parking!", player.Name, amount)
-
-	default:
-		return fmt.Errorf("invalid free parking action type: %s", actionType)
+	if err != nil {
+		return fmt.Errorf("transaction failed: %w", err)
 	}
 
 	rm.Broadcast(client.Room, Message{
-		Type: "GAME_STATE_UPDATE",
+		Type: "FREE_PARKING",
 		Payload: map[string]interface{}{
-			"type":         "FREE_PARKING_UPDATE",
+			"type":         "FREE_PARKING",
 			"amount":       amount,
 			"actionType":   actionType,
 			"notification": notification,
@@ -267,6 +324,71 @@ func (rm *RoomManager) handlePropertyPurchase(client *Client, message Message) e
 		},
 	})
 	log.Printf("Broadcast complete to room: %s", client.Room)
+
+	return nil
+}
+func (rm *RoomManager) handleBankTransaction(client *Client, message Message) error {
+	log.Printf("Starting bank transaction handling for room: %s", client.Room)
+
+	payload, ok := message.Payload.(map[string]interface{})
+	log.Printf("Bank transaction payload received: %+v", payload)
+	if !ok {
+		return errors.New("invalid payload format")
+	}
+
+	amount, err := strconv.Atoi(payload["amount"].(string))
+	if err != nil {
+		return fmt.Errorf("invalid amount: %w", err)
+	}
+
+	targetPlayerID, err := primitive.ObjectIDFromHex(payload["toPlayerId"].(string))
+	if err != nil {
+		return fmt.Errorf("invalid target player ID: %w", err)
+	}
+	roomID, err := primitive.ObjectIDFromHex(payload["roomId"].(string))
+	if err != nil {
+		return fmt.Errorf("invalid target player ID: %w", err)
+	}
+	targetPlayer, err := controllers.GetPlayer(targetPlayerID)
+	if err != nil {
+		return fmt.Errorf("failed to get target player details: %w", err)
+	}
+
+	transactionType := payload["transactionType"].(string)
+	isAdd := transactionType == "BANKER_ADD"
+
+	err = controllers.UpdatePlayerBalanceByBanker(roomID, targetPlayerID, amount, isAdd)
+	if err != nil {
+		return fmt.Errorf("failed to process bank transaction: %w", err)
+	}
+
+	var action, preposition string
+	if isAdd {
+		action = "added"
+		preposition = "to"
+	} else {
+		action = "removed"
+		preposition = "from"
+	}
+
+	notification := fmt.Sprintf("Banker has %s $%d %s %s's balance",
+		action,
+		amount,
+		preposition,
+		targetPlayer.Name,
+	)
+
+	rm.Broadcast(client.Room, Message{
+		Type: "BANKER_TRANSACTION",
+		Payload: map[string]interface{}{
+			"type":         "BANKER_TRANSACTION",
+			"playerId":     targetPlayerID.Hex(),
+			"amount":       amount,
+			"isAdd":        isAdd,
+			"notification": notification,
+		},
+	})
+	log.Printf("Bank transaction broadcast complete for room: %s", client.Room)
 
 	return nil
 }

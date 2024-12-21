@@ -125,6 +125,16 @@ func HandleWebSocket(c *gin.Context) {
 			} else {
 				log.Printf("Purchase successful")
 			}
+		case "BANKER_TRANSACTION":
+			log.Printf("Entered bank transaction")
+			if err := Manager.handleBankTransaction(client, message); err != nil {
+				conn.WriteJSON(Message{
+					Type:    "ERROR",
+					Payload: err.Error(),
+				})
+			} else {
+				log.Printf("Transfer successful")
+			}
 		case "TRANSFER":
 			if err := Manager.handleTransfer(client, message); err != nil {
 				log.Printf("Transfer error: %v", err)
