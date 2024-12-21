@@ -159,6 +159,11 @@ func (rm *RoomManager) handlePropertyPurchase(client *Client, message Message) e
 		return fmt.Errorf("invalid propertyId: %w", err)
 	}
 	log.Printf("Processed propertyId: %s", propertyID.Hex())
+	property, buyer, err := controllers.GetPropertyAndBuyer(propertyID, buyerID)
+	if err != nil {
+		log.Printf("Failed to get property or buyer details: %v", err)
+		return err
+	}
 
 	log.Printf("Attempting to update property %s with new owner %s", propertyID.Hex(), buyerID.Hex())
 	purchaseErr := controllers.PurchaseProperty(propertyID, buyerID, price)
@@ -170,12 +175,15 @@ func (rm *RoomManager) handlePropertyPurchase(client *Client, message Message) e
 
 	log.Printf("Broadcasting update to room: %s", client.Room)
 	rm.Broadcast(client.Room, Message{
-		Type: "GAME_STATE_UPDATE",
+		Type: "PURCHASE_PROPERTY",
 		Payload: map[string]interface{}{
-			"type":       "PROPERTY_BOUGHT",
-			"propertyId": propertyID.Hex(),
-			"buyerId":    buyerID.Hex(),
-			"price":      price,
+			"type":         "PURCHASE_PROPERTY",
+			"propertyId":   propertyID.Hex(),
+			"buyerId":      buyerID.Hex(),
+			"price":        price,
+			"propertyName": property.Name,
+			"buyerName":    buyer.Name,
+			"notification": fmt.Sprintf("%s has just purchased %s from the Bank", buyer.Name, property.Name),
 		},
 	})
 	log.Printf("Broadcast complete to room: %s", client.Room)

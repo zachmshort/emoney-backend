@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -32,7 +33,21 @@ func PurchaseProperty(propertyID, buyerID primitive.ObjectID, price int) error {
 	)
 	return err
 }
+func GetPropertyAndBuyer(propertyID, buyerID primitive.ObjectID) (*models.Property, *models.Player, error) {
+	var property models.Property
+	err := config.DB.Collection("Property").FindOne(context.Background(), bson.M{"_id": propertyID}).Decode(&property)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to find property: %w", err)
+	}
 
+	var buyer models.Player
+	err = config.DB.Collection("Player").FindOne(context.Background(), bson.M{"_id": buyerID}).Decode(&buyer)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to find buyer: %w", err)
+	}
+
+	return &property, &buyer, nil
+}
 func AssignOwnerShipProperty(propertyID, buyerID primitive.ObjectID) error {
 	_, err := config.DB.Collection("Property").UpdateOne(
 		context.Background(),
