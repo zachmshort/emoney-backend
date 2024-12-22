@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"log"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -21,8 +21,7 @@ func CreateRoom(c *gin.Context) {
 		Code     string `json:"code" binding:"required"`
 		Color    string `json:"color" binding:"required"`
 	}
-	log.Printf(requestBody.RoomName)
-	log.Printf("LKFJLDFKJDKLJKLFDJFLKJFLDK")
+
 	if err := c.ShouldBindJSON(&requestBody); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -50,6 +49,15 @@ func CreateRoom(c *gin.Context) {
 		Balance:  1500,
 		Name:     requestBody.Name,
 		Color:    requestBody.Color,
+	}
+
+	eventHistory := models.EventHistory{
+		ID:           primitive.NewObjectID(),
+		RoomID:       roomID,
+		TimeStamp:    time.Now(),
+		Event:        fmt.Sprintf("%s created a new Monopoly game, %s", banker.Name, requestBody.RoomName),
+		Type:         "GAME_CREATED",
+		FromPlayerID: banker.ID,
 	}
 
 	properties := make([]models.Property, len(config.DefaultProperties))
@@ -95,6 +103,12 @@ func CreateRoom(c *gin.Context) {
 
 		playerColl := config.DB.Collection("Player")
 		_, err = playerColl.InsertOne(sc, banker)
+		if err != nil {
+			return err
+		}
+
+		eventHistoryColl := config.DB.Collection("EventHistory")
+		_, err = eventHistoryColl.InsertOne(sc, eventHistory)
 		if err != nil {
 			return err
 		}
