@@ -78,9 +78,9 @@ func GetPlayersInRoom(c *gin.Context) {
 		return
 	}
 	response := gin.H{
-		"players": players,
-		"room":    room,
-		"events":  eventHistory,
+		"players":      players,
+		"room":         room,
+		"eventHistory": eventHistory,
 	}
 
 	if existingPlayer != nil {
