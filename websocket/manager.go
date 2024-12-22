@@ -145,7 +145,6 @@ func (rm *RoomManager) handleTransfer(client *Client, message Message) error {
 	fmt.Printf("BY ITSELF %s BY ITSELF", transfer.Reason)
 
 	return nil
-
 }
 
 func (rm *RoomManager) freeParking(client *Client, message Message) error {

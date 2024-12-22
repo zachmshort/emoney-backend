@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
 	"time"
 
@@ -15,11 +16,13 @@ import (
 func CreateRoom(c *gin.Context) {
 
 	var requestBody struct {
-		Name  string `json:"name" binding:"required"`
-		Code  string `json:"code" binding:"required"`
-		Color string `json:"color" binding:"required"`
+		Name     string `json:"name" binding:"required"`
+		RoomName string `json:"roomName" binding:"required"`
+		Code     string `json:"code" binding:"required"`
+		Color    string `json:"color" binding:"required"`
 	}
-
+	log.Printf(requestBody.RoomName)
+	log.Printf("LKFJLDFKJDKLJKLFDJFLKJFLDK")
 	if err := c.ShouldBindJSON(&requestBody); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -30,6 +33,7 @@ func CreateRoom(c *gin.Context) {
 
 	room := models.Room{
 		ID:          roomID,
+		Name:        requestBody.RoomName,
 		RoomCode:    requestBody.Code,
 		BankerId:    playerID,
 		FreeParking: 0,
