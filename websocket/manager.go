@@ -63,10 +63,8 @@ func (rm *RoomManager) Broadcast(room string, message Message) {
 }
 
 func (rm *RoomManager) handleTransfer(client *Client, message Message) error {
-	log.Printf("Starting transfer handling for room: %s", client.Room)
 
 	payload, ok := message.Payload.(map[string]interface{})
-	log.Printf("Transfer payload received: %+v", payload)
 	if !ok {
 		return errors.New("invalid payload format")
 	}
@@ -92,6 +90,45 @@ func (rm *RoomManager) handleTransfer(client *Client, message Message) error {
 		Status:    models.TransferPending,
 	}
 
+	eventHistory := models.EventHistory{
+		ID:        primitive.NewObjectID(),
+		RoomID:    roomObjID,
+		Event:     payload["reason"].(string),
+		TimeStamp: time.Now(),
+	}
+
+	session, err := config.DB.Client().StartSession()
+
+	if err != nil {
+		return err
+	}
+
+	err = mongo.WithSession(context.Background(), session, func(sc mongo.SessionContext) error {
+		if err := sc.StartTransaction(); err != nil {
+			return fmt.Errorf("failed to start transaction: %w", err)
+		}
+
+		eventHistoryColl := config.DB.Collection("EventHistory")
+		_, err := eventHistoryColl.InsertOne(sc, eventHistory)
+		if err != nil {
+			if abortErr := sc.AbortTransaction(sc); abortErr != nil {
+				log.Printf("failed to abort transaction: %v", abortErr)
+			}
+			return fmt.Errorf("failed to insert event history: %w", err)
+		}
+
+		if err := sc.CommitTransaction(sc); err != nil {
+			return fmt.Errorf("failed to commit transaction: %w", err)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		log.Printf("Error occurred during transaction: %v", err)
+		return err
+	}
+
 	var transferErr error
 	switch transfer.Type {
 	case "SEND":
@@ -105,6 +142,7 @@ func (rm *RoomManager) handleTransfer(client *Client, message Message) error {
 		}
 		transfer.FromPlayerID = fromID
 		transfer.ToPlayerID = toID
+
 		transferErr = controllers.PlayerTransfer(transfer)
 	case "REQUEST":
 		transferErr = errors.New("request transfers not implemented yet")
@@ -119,7 +157,6 @@ func (rm *RoomManager) handleTransfer(client *Client, message Message) error {
 	}
 
 	transfer.Status = models.TransferCompleted
-	log.Printf("Transfer successful, broadcasting update to room: %s", roomIdStr)
 	var fromPlayer, toPlayer *models.Player
 
 	fromPlayer, err = controllers.GetPlayer(transfer.FromPlayerID)
@@ -142,7 +179,6 @@ func (rm *RoomManager) handleTransfer(client *Client, message Message) error {
 			"notification": fmt.Sprintf("%s just sent $%s to %s for %s", fromPlayer.Name, strconv.Itoa(amount), toPlayer.Name, transfer.Reason),
 		},
 	})
-	fmt.Printf("BY ITSELF %s BY ITSELF", transfer.Reason)
 
 	return nil
 }

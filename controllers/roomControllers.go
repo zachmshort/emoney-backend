@@ -52,12 +52,10 @@ func CreateRoom(c *gin.Context) {
 	}
 
 	eventHistory := models.EventHistory{
-		ID:           primitive.NewObjectID(),
-		RoomID:       roomID,
-		TimeStamp:    time.Now(),
-		Event:        fmt.Sprintf("%s created a new Monopoly game, %s", banker.Name, requestBody.RoomName),
-		Type:         "GAME_CREATED",
-		FromPlayerID: banker.ID,
+		ID:        primitive.NewObjectID(),
+		RoomID:    roomID,
+		TimeStamp: time.Now(),
+		Event:     fmt.Sprintf("%s created a new room, %s", banker.Name, requestBody.RoomName),
 	}
 
 	properties := make([]models.Property, len(config.DefaultProperties))
