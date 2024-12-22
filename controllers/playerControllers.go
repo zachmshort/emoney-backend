@@ -19,6 +19,7 @@ func GetPlayersInRoom(c *gin.Context) {
 
 	roomCollection := config.DB.Collection("Room")
 	playerCollection := config.DB.Collection("Player")
+	eventHistoryCollection := config.DB.Collection("EventHistory")
 
 	var room models.Room
 	err := roomCollection.FindOne(c, bson.M{"roomCode": roomCode}).Decode(&room)
@@ -65,10 +66,21 @@ func GetPlayersInRoom(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode players"})
 		return
 	}
+	var eventHistory []models.EventHistory
+	cursor, err = eventHistoryCollection.Find(c, query)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get players"})
+		return
+	}
 
+	if err = cursor.All(c, &eventHistory); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode players"})
+		return
+	}
 	response := gin.H{
 		"players": players,
 		"room":    room,
+		"events":  eventHistory,
 	}
 
 	if existingPlayer != nil {
