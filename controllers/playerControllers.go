@@ -11,6 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func GetPlayersInRoom(c *gin.Context) {
@@ -67,7 +68,8 @@ func GetPlayersInRoom(c *gin.Context) {
 		return
 	}
 	var eventHistory []models.EventHistory
-	cursor, err = eventHistoryCollection.Find(c, query)
+	opts := options.Find().SetSort(bson.D{{Key: "timestamp", Value: -1}})
+	cursor, err = eventHistoryCollection.Find(c, query, opts)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get players"})
 		return
