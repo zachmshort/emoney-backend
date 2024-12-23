@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
+	"strings"
 
 	"github.com/zachmshort/monopoly-backend/config"
 	"github.com/zachmshort/monopoly-backend/models"
@@ -12,7 +14,7 @@ import (
 )
 
 func HandleHotelManagement(roomObjID primitive.ObjectID, manageType string, propertyDetails models.PropertyDetails) error {
-	propertiesColl := config.DB.Collection("Property")
+	propertyColl := config.DB.Collection("Property")
 
 	for _, detail := range propertyDetails {
 		propertyObjID, err := primitive.ObjectIDFromHex(detail.PropertyID)
@@ -35,7 +37,7 @@ func HandleHotelManagement(roomObjID primitive.ObjectID, manageType string, prop
 			return fmt.Errorf("invalid management type: %s", manageType)
 		}
 
-		_, err = propertiesColl.UpdateOne(context.TODO(), filter, update)
+		_, err = propertyColl.UpdateOne(context.TODO(), filter, update)
 		if err != nil {
 			return fmt.Errorf("failed to update property: %w", err)
 		}
@@ -45,27 +47,25 @@ func HandleHotelManagement(roomObjID primitive.ObjectID, manageType string, prop
 }
 
 func HandleHouseManagement(roomObjID primitive.ObjectID, manageType string, propertyDetails models.PropertyDetails) error {
-	propertiesColl := config.DB.Collection("Property")
+	propertyColl := config.DB.Collection("Property")
 
 	for _, detail := range propertyDetails {
 		propertyObjID, err := primitive.ObjectIDFromHex(detail.PropertyID)
 		if err != nil {
 			return fmt.Errorf("invalid property ID: %s", detail.PropertyID)
 		}
-
 		filter := bson.M{"_id": propertyObjID, "roomId": roomObjID}
 		update := bson.M{}
-
 		switch manageType {
 		case "ADD_HOUSES":
-			update = bson.M{"$inc": bson.M{"houses": detail.Count}}
+			update = bson.M{"$set": bson.M{"houses": detail.Count}}
 		case "REMOVE_HOUSES":
-			update = bson.M{"$inc": bson.M{"houses": -detail.Count}}
+			update = bson.M{"$set": bson.M{"houses": detail.Count}}
 		default:
 			return fmt.Errorf("invalid management type: %s", manageType)
 		}
 
-		_, err = propertiesColl.UpdateOne(context.TODO(), filter, update)
+		_, err = propertyColl.UpdateOne(context.TODO(), filter, update)
 		if err != nil {
 			return fmt.Errorf("failed to update property: %w", err)
 		}
@@ -74,7 +74,36 @@ func HandleHouseManagement(roomObjID primitive.ObjectID, manageType string, prop
 	return nil
 }
 
-func HandlePropertySaleMortgage(roomObjID primitive.ObjectID, manageType string, propertyIds []string) error {
+func HandlePropertySaleMortgage(roomObjID primitive.ObjectID, manageType string, propertyDetails models.PropertyDetails) error {
+	manageType = strings.TrimSpace(manageType)
+	propertyColl := config.DB.Collection("Property")
+	for _, detail := range propertyDetails {
+		propertyObjID, err := primitive.ObjectIDFromHex(detail.PropertyID)
+		if err != nil {
+			return fmt.Errorf("invalid property id")
+		}
+
+		filter := bson.M{"_id": propertyObjID, "roomId": roomObjID}
+		update := bson.M{}
+		switch manageType {
+		case "MORTGAGE":
+			update = bson.M{"$set": bson.M{"isMortgaged": true}}
+		case "UNMORTGAGE":
+			update = bson.M{"$set": bson.M{"isMortgaged": false}}
+		case "SELL":
+			update = bson.M{"$set": bson.M{"playerId": nil, "isMortgaged": false}}
+		default:
+			return fmt.Errorf("invalid management type, %s", manageType)
+		}
+
+		result, err := propertyColl.UpdateOne(context.TODO(), filter, update)
+		if err != nil {
+			log.Printf("Failed to update property for %s: %v", manageType, err)
+			return fmt.Errorf("failed to update property for %s: %w", manageType, err)
+		}
+		log.Printf("ManageType: %s | Matched: %d | Modified: %d", manageType, result.MatchedCount, result.ModifiedCount)
+	}
+
 	return nil
 }
 

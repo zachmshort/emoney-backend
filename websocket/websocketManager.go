@@ -91,45 +91,6 @@ func (rm *RoomManager) handleTransfer(client *Client, message Message) error {
 		Status:    models.TransferPending,
 	}
 
-	eventHistory := models.EventHistory{
-		ID:        primitive.NewObjectID(),
-		RoomID:    roomObjID,
-		Event:     payload["reason"].(string),
-		TimeStamp: time.Now(),
-	}
-
-	session, err := config.DB.Client().StartSession()
-
-	if err != nil {
-		return err
-	}
-
-	err = mongo.WithSession(context.Background(), session, func(sc mongo.SessionContext) error {
-		if err := sc.StartTransaction(); err != nil {
-			return fmt.Errorf("failed to start transaction: %w", err)
-		}
-
-		eventHistoryColl := config.DB.Collection("EventHistory")
-		_, err := eventHistoryColl.InsertOne(sc, eventHistory)
-		if err != nil {
-			if abortErr := sc.AbortTransaction(sc); abortErr != nil {
-				log.Printf("failed to abort transaction: %v", abortErr)
-			}
-			return fmt.Errorf("failed to insert event history: %w", err)
-		}
-
-		if err := sc.CommitTransaction(sc); err != nil {
-			return fmt.Errorf("failed to commit transaction: %w", err)
-		}
-
-		return nil
-	})
-
-	if err != nil {
-		log.Printf("Error occurred during transaction: %v", err)
-		return err
-	}
-
 	var transferErr error
 	switch transfer.Type {
 	case "SEND":
@@ -169,13 +130,13 @@ func (rm *RoomManager) handleTransfer(client *Client, message Message) error {
 		log.Printf("Failed to get to player details: %v", err)
 		return err
 	}
-
+	notification := fmt.Sprintf("%s just sent $%s to %s for %s", fromPlayer.Name, strconv.Itoa(amount), toPlayer.Name, transfer.Reason)
 	rm.Broadcast(client.Room, Message{
 		Type: "TRANSFER",
 		Payload: map[string]interface{}{
 			"type":         "TRANSFER",
 			"transfer":     transfer,
-			"notification": fmt.Sprintf("%s just sent $%s to %s for %s", fromPlayer.Name, strconv.Itoa(amount), toPlayer.Name, transfer.Reason),
+			"notification": notification,
 		},
 	})
 
@@ -183,10 +144,7 @@ func (rm *RoomManager) handleTransfer(client *Client, message Message) error {
 }
 
 func (rm *RoomManager) freeParking(client *Client, message Message) error {
-	log.Printf("Starting free parking handler for room: %s", client.Room)
-
 	payload, ok := message.Payload.(map[string]interface{})
-	log.Printf("Free parking payload received: %+v", payload)
 	if !ok {
 		return errors.New("invalid payload format")
 	}
@@ -248,7 +206,7 @@ func (rm *RoomManager) freeParking(client *Client, message Message) error {
 			}
 
 			notification = fmt.Sprintf("%s added $%d to Free Parking", player.Name, amount)
-
+			rm.CreateEventHistory(notification, roomObjID)
 		case "REMOVE":
 			var room models.Room
 			err := config.DB.Collection("Room").FindOne(ctx, bson.M{"_id": roomObjID}).Decode(&room)
@@ -279,6 +237,7 @@ func (rm *RoomManager) freeParking(client *Client, message Message) error {
 			}
 
 			notification = fmt.Sprintf("%s collected $%d from Free Parking", player.Name, amount)
+			rm.CreateEventHistory(notification, roomObjID)
 		}
 
 		return nil, nil
@@ -302,10 +261,7 @@ func (rm *RoomManager) freeParking(client *Client, message Message) error {
 	return nil
 }
 func (rm *RoomManager) handlePropertyPurchase(client *Client, message Message) error {
-	log.Printf("Starting property purchase handling for room: %s", client.Room)
-
 	payload, ok := message.Payload.(map[string]interface{})
-	log.Printf("Property purchase payload received: %+v", payload)
 	if !ok {
 		return errors.New("invalid payload format")
 	}
@@ -315,36 +271,32 @@ func (rm *RoomManager) handlePropertyPurchase(client *Client, message Message) e
 		return fmt.Errorf("invalid price format")
 	}
 	price := int(priceFloat)
-	log.Printf("Processed price: %d", price)
 
 	buyerID, err := primitive.ObjectIDFromHex(payload["buyerId"].(string))
 	if err != nil {
 		log.Printf("Invalid buyerId error: %v", err)
 		return fmt.Errorf("invalid buyerId: %w", err)
 	}
-	log.Printf("Processed buyerId: %s", buyerID.Hex())
 
 	propertyID, err := primitive.ObjectIDFromHex(payload["propertyId"].(string))
 	if err != nil {
 		log.Printf("Invalid propertyId error: %v", err)
 		return fmt.Errorf("invalid propertyId: %w", err)
 	}
-	log.Printf("Processed propertyId: %s", propertyID.Hex())
 	property, buyer, err := controllers.GetPropertyAndBuyer(propertyID, buyerID)
 	if err != nil {
 		log.Printf("Failed to get property or buyer details: %v", err)
 		return err
 	}
 
-	log.Printf("Attempting to update property %s with new owner %s", propertyID.Hex(), buyerID.Hex())
 	purchaseErr := controllers.PurchaseProperty(propertyID, buyerID, price)
 	if purchaseErr != nil {
 		log.Printf("Property update failed: %v", purchaseErr)
 		return purchaseErr
 	}
-	log.Printf("Property update successful")
 
-	log.Printf("Broadcasting update to room: %s", client.Room)
+	notification := fmt.Sprintf("%s purchased %s from the Bank", buyer.Name, property.Name)
+	rm.CreateEventHistory(notification, property.RoomID)
 	rm.Broadcast(client.Room, Message{
 		Type: "PURCHASE_PROPERTY",
 		Payload: map[string]interface{}{
@@ -354,13 +306,13 @@ func (rm *RoomManager) handlePropertyPurchase(client *Client, message Message) e
 			"price":        price,
 			"propertyName": property.Name,
 			"buyerName":    buyer.Name,
-			"notification": fmt.Sprintf("%s has just purchased %s from the Bank", buyer.Name, property.Name),
+			"notification": notification,
 		},
 	})
-	log.Printf("Broadcast complete to room: %s", client.Room)
 
 	return nil
 }
+
 func (rm *RoomManager) handleBankTransaction(client *Client, message Message) error {
 
 	payload, ok := message.Payload.(map[string]interface{})
@@ -410,6 +362,8 @@ func (rm *RoomManager) handleBankTransaction(client *Client, message Message) er
 		targetPlayer.Name,
 	)
 
+	rm.CreateEventHistory(notification, roomID)
+
 	rm.Broadcast(client.Room, Message{
 		Type: "BANKER_TRANSACTION",
 		Payload: map[string]interface{}{
@@ -438,10 +392,10 @@ func (rm *RoomManager) handleManageProperties(client *Client, message Message) e
 	var amount int
 	switch v := amountValue.(type) {
 	case float64:
-		amount = int(v) // Convert float64 to int directly
+		amount = int(v)
 	case string:
 		var err error
-		amount, err = strconv.Atoi(v) // Parse string to int
+		amount, err = strconv.Atoi(v)
 		if err != nil {
 			return fmt.Errorf("invalid amount value: %w", err)
 		}
@@ -471,25 +425,115 @@ func (rm *RoomManager) handleManageProperties(client *Client, message Message) e
 		err = manager.HandleHouseManagement(roomObjID, manageType, properties)
 	case "ADD_HOTELS", "REMOVE_HOTELS":
 		err = manager.HandleHotelManagement(roomObjID, manageType, properties)
+	case "MORTGAGE", "UNMORTGAGE", "SELL":
+		err = manager.HandlePropertySaleMortgage(roomObjID, manageType, properties)
 	default:
 		return fmt.Errorf("invalid management type: %s", manageType)
 	}
+
 	if err != nil {
 		return err
 	}
-
 	err = manager.UpdatePlayerBalance(playerID, amount)
 	if err != nil {
 		return err
 	}
 
+	idValue, ok := payload["playerId"]
+	if !ok || idValue == nil {
+		return fmt.Errorf("toPlayerId is missing or nil")
+	}
+
+	idStr, ok := idValue.(string)
+	if !ok {
+		return fmt.Errorf("toPlayerId is not a string")
+	}
+
+	targetPlayerID, err := primitive.ObjectIDFromHex(idStr)
+	if err != nil {
+		return fmt.Errorf("invalid target player ID: %w", err)
+	}
+
+	targetPlayer, err := controllers.GetPlayer(targetPlayerID)
+	if err != nil {
+		return fmt.Errorf("failed to get target player details: %w", err)
+	}
+
+	var action, preposition, mType string
+	switch manageType {
+	case "MORTGAGE":
+		action = "received"
+		preposition = "for mortgaging"
+		mType = "property"
+	case "UNMORTGAGE":
+		action = "paid"
+		preposition = "to unmortgage"
+		mType = "property"
+	case "SELL":
+		action = "received"
+		preposition = "for selling"
+		mType = "property"
+	case "ADD_HOUSES":
+		action = "spent"
+		preposition = "to build"
+		mType = "houses"
+	case "REMOVE_HOUSES":
+		action = "received"
+		preposition = "for selling"
+		mType = "houses"
+	case "ADD_HOTELS":
+		action = "spent"
+		preposition = "to build"
+		mType = "hotels"
+	case "REMOVE_HOTELS":
+		action = "received"
+		preposition = "for selling"
+		mType = "hotels"
+	default:
+		return fmt.Errorf("unknown manageType: %s", manageType)
+	}
+
+	absAmount := amount
+	if amount < 0 {
+		absAmount = -amount
+	}
+
+	var totalCount int
+	for _, property := range properties {
+		totalCount += property.Count
+	}
+
+	notification := fmt.Sprintf("%s %s $%d %s %s",
+		targetPlayer.Name,
+		action,
+		absAmount,
+		preposition,
+		mType,
+	)
+	rm.CreateEventHistory(notification, roomObjID)
 	rm.Broadcast(client.Room, Message{
-		Type: "MANAGE_PROPERTY",
+		Type: "MANAGE_PROPERTIES",
 		Payload: map[string]interface{}{
-			"type":         manageType,
-			"notification": "Property management successful",
+			"type":         "MANAGE_PROPERTIES",
+			"notification": notification,
 		},
 	})
+	log.Printf("Broadcast complete to room: %s", client.Room)
 
+	return nil
+}
+
+func (rm *RoomManager) CreateEventHistory(notification string, roomId primitive.ObjectID) error {
+	eventHistory := models.EventHistory{
+		ID:        primitive.NewObjectID(),
+		TimeStamp: time.Now(),
+		Event:     notification,
+		RoomID:    roomId,
+	}
+
+	_, err := config.DB.Collection("EventHistory").InsertOne(context.Background(), eventHistory)
+	if err != nil {
+		return fmt.Errorf("failed to insert event history: %w", err)
+	}
 	return nil
 }
