@@ -11,4 +11,5 @@ type EventHistory struct {
 	RoomID    primitive.ObjectID `bson:"roomId" json:"roomId"`
 	TimeStamp time.Time          `bson:"timestamp" json:"timestamp"`
 	Event     string             `bson:"event" json:"event"` // description of what happened
+	EventType []string           `bson:"eventType"`
 }

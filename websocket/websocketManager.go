@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -134,8 +135,6 @@ func (rm *RoomManager) handleTransfer(client *Client, message Message) error {
 	rm.Broadcast(client.Room, Message{
 		Type: "TRANSFER",
 		Payload: map[string]interface{}{
-			"type":         "TRANSFER",
-			"transfer":     transfer,
 			"notification": notification,
 		},
 	})
@@ -250,9 +249,6 @@ func (rm *RoomManager) freeParking(client *Client, message Message) error {
 	rm.Broadcast(client.Room, Message{
 		Type: "FREE_PARKING",
 		Payload: map[string]interface{}{
-			"type":         "FREE_PARKING",
-			"amount":       amount,
-			"actionType":   actionType,
 			"notification": notification,
 		},
 	})
@@ -300,12 +296,6 @@ func (rm *RoomManager) handlePropertyPurchase(client *Client, message Message) e
 	rm.Broadcast(client.Room, Message{
 		Type: "PURCHASE_PROPERTY",
 		Payload: map[string]interface{}{
-			"type":         "PURCHASE_PROPERTY",
-			"propertyId":   propertyID.Hex(),
-			"buyerId":      buyerID.Hex(),
-			"price":        price,
-			"propertyName": property.Name,
-			"buyerName":    buyer.Name,
 			"notification": notification,
 		},
 	})
@@ -367,10 +357,6 @@ func (rm *RoomManager) handleBankTransaction(client *Client, message Message) er
 	rm.Broadcast(client.Room, Message{
 		Type: "BANKER_TRANSACTION",
 		Payload: map[string]interface{}{
-			"type":         "BANKER_TRANSACTION",
-			"playerId":     targetPlayerID.Hex(),
-			"amount":       amount,
-			"isAdd":        isAdd,
 			"notification": notification,
 		},
 	})
@@ -514,7 +500,6 @@ func (rm *RoomManager) handleManageProperties(client *Client, message Message) e
 	rm.Broadcast(client.Room, Message{
 		Type: "MANAGE_PROPERTIES",
 		Payload: map[string]interface{}{
-			"type":         "MANAGE_PROPERTIES",
 			"notification": notification,
 		},
 	})
@@ -524,11 +509,30 @@ func (rm *RoomManager) handleManageProperties(client *Client, message Message) e
 }
 
 func (rm *RoomManager) CreateEventHistory(notification string, roomId primitive.ObjectID) error {
+	var eventType []string
+
+	switch {
+	case strings.Contains(notification, "purchased"):
+		eventType = []string{"#10b981", "🏠"}
+	case strings.Contains(notification, "Free Parking"):
+		eventType = []string{"#f59e0b", "🅿️"}
+	case strings.Contains(notification, "sent"):
+		eventType = []string{"#3b82f6", "💸"}
+	case strings.Contains(notification, "Banker"):
+		eventType = []string{"#6366f1", "🏦"}
+	case strings.Contains(notification, "mortgag"):
+		eventType = []string{"#ef4444", "📄"}
+	case strings.Contains(notification, "house") || strings.Contains(notification, "hotels"):
+		eventType = []string{"#8b5cf6", "🏗️"}
+	default:
+		eventType = []string{"#6b7280", "ℹ️"}
+	}
 	eventHistory := models.EventHistory{
 		ID:        primitive.NewObjectID(),
 		TimeStamp: time.Now(),
 		Event:     notification,
 		RoomID:    roomId,
+		EventType: eventType,
 	}
 
 	_, err := config.DB.Collection("EventHistory").InsertOne(context.Background(), eventHistory)
