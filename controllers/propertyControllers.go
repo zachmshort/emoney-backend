@@ -33,6 +33,7 @@ func PurchaseProperty(propertyID, buyerID primitive.ObjectID, price int) error {
 	)
 	return err
 }
+
 func GetPropertyAndBuyer(propertyID, buyerID primitive.ObjectID) (*models.Property, *models.Player, error) {
 	var property models.Property
 	err := config.DB.Collection("Property").FindOne(context.Background(), bson.M{"_id": propertyID}).Decode(&property)
@@ -48,6 +49,7 @@ func GetPropertyAndBuyer(propertyID, buyerID primitive.ObjectID) (*models.Proper
 
 	return &property, &buyer, nil
 }
+
 func AssignOwnerShipProperty(propertyID, buyerID primitive.ObjectID) error {
 	_, err := config.DB.Collection("Property").UpdateOne(
 		context.Background(),
@@ -56,6 +58,7 @@ func AssignOwnerShipProperty(propertyID, buyerID primitive.ObjectID) error {
 	)
 	return err
 }
+
 func GetAvailableProperties(c *gin.Context) {
 	roomCode := c.Param("roomCode")
 

@@ -11,6 +11,7 @@ import (
 
 	"github.com/zachmshort/monopoly-backend/config"
 	"github.com/zachmshort/monopoly-backend/controllers"
+	"github.com/zachmshort/monopoly-backend/manager"
 	"github.com/zachmshort/monopoly-backend/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -146,8 +147,6 @@ func (rm *RoomManager) handleTransfer(client *Client, message Message) error {
 		transferErr = controllers.PlayerTransfer(transfer)
 	case "REQUEST":
 		transferErr = errors.New("request transfers not implemented yet")
-	case "ADD", "SUBTRACT":
-		transferErr = errors.New("bank transfers not implemented yet")
 	default:
 		transferErr = fmt.Errorf("invalid transfer type: %s", transfer.Type)
 	}
@@ -363,10 +362,8 @@ func (rm *RoomManager) handlePropertyPurchase(client *Client, message Message) e
 	return nil
 }
 func (rm *RoomManager) handleBankTransaction(client *Client, message Message) error {
-	log.Printf("Starting bank transaction handling for room: %s", client.Room)
 
 	payload, ok := message.Payload.(map[string]interface{})
-	log.Printf("Bank transaction payload received: %+v", payload)
 	if !ok {
 		return errors.New("invalid payload format")
 	}
@@ -423,7 +420,76 @@ func (rm *RoomManager) handleBankTransaction(client *Client, message Message) er
 			"notification": notification,
 		},
 	})
-	log.Printf("Bank transaction broadcast complete for room: %s", client.Room)
+
+	return nil
+}
+
+func (rm *RoomManager) handleManageProperties(client *Client, message Message) error {
+	payload, ok := message.Payload.(map[string]interface{})
+	if !ok {
+		return errors.New("invalid payload format")
+	}
+
+	amountValue, ok := payload["amount"]
+	if !ok {
+		return fmt.Errorf("missing amount field")
+	}
+
+	var amount int
+	switch v := amountValue.(type) {
+	case float64:
+		amount = int(v) // Convert float64 to int directly
+	case string:
+		var err error
+		amount, err = strconv.Atoi(v) // Parse string to int
+		if err != nil {
+			return fmt.Errorf("invalid amount value: %w", err)
+		}
+	default:
+		return fmt.Errorf("unexpected type for amount: %T", v)
+	}
+
+	roomObjID, err := primitive.ObjectIDFromHex(payload["roomId"].(string))
+	if err != nil {
+		return fmt.Errorf("invalid room ID: %w", err)
+	}
+
+	playerID, err := primitive.ObjectIDFromHex(payload["playerId"].(string))
+	if err != nil {
+		return fmt.Errorf("invalid player ID: %w", err)
+	}
+
+	properties, err := manager.ExtractPropertyDetails(payload["properties"])
+	if err != nil {
+		return fmt.Errorf("invalid properties: %w", err)
+	}
+
+	manageType := payload["managementType"].(string)
+
+	switch manageType {
+	case "ADD_HOUSES", "REMOVE_HOUSES":
+		err = manager.HandleHouseManagement(roomObjID, manageType, properties)
+	case "ADD_HOTELS", "REMOVE_HOTELS":
+		err = manager.HandleHotelManagement(roomObjID, manageType, properties)
+	default:
+		return fmt.Errorf("invalid management type: %s", manageType)
+	}
+	if err != nil {
+		return err
+	}
+
+	err = manager.UpdatePlayerBalance(playerID, amount)
+	if err != nil {
+		return err
+	}
+
+	rm.Broadcast(client.Room, Message{
+		Type: "MANAGE_PROPERTY",
+		Payload: map[string]interface{}{
+			"type":         manageType,
+			"notification": "Property management successful",
+		},
+	})
 
 	return nil
 }

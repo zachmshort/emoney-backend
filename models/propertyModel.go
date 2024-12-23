@@ -23,6 +23,11 @@ type Property struct {
 	Images        []string           `bson:"images" json:"images"`
 }
 
+type PropertyDetails []struct {
+	PropertyID string
+	Count      int
+}
+
 type PropertyPurchase struct {
 	ID         primitive.ObjectID `bson:"_id" json:"id"`
 	RoomID     primitive.ObjectID `bson:"roomId" json:"roomId"`

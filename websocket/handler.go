@@ -145,6 +145,15 @@ func HandleWebSocket(c *gin.Context) {
 			} else {
 				log.Printf("Transfer successful")
 			}
+		case "MANAGE_PROPERTIES":
+			if err := Manager.handleManageProperties(client, message); err != nil {
+				conn.WriteJSON(Message{
+					Type:    "ERROR",
+					Payload: err.Error(),
+				})
+			} else {
+				log.Printf("Property manage successful")
+			}
 		}
 	}
 }
