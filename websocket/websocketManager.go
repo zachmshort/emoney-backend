@@ -512,7 +512,7 @@ func (rm *RoomManager) CreateEventHistory(notification string, roomId primitive.
 	var eventType []string
 
 	switch {
-	case strings.Contains(notification, "purchased"):
+	case strings.Contains(notification, "purchased"), strings.Contains(notification, "selling"):
 		eventType = []string{"#10b981", "🏠"}
 	case strings.Contains(notification, "Free Parking"):
 		eventType = []string{"#f59e0b", "🅿️"}
