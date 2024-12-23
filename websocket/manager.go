@@ -85,7 +85,7 @@ func (rm *RoomManager) handleTransfer(client *Client, message Message) error {
 		RoomID:    roomObjID,
 		Amount:    amount,
 		Reason:    payload["reason"].(string),
-		Type:      payload["type"].(string),
+		Type:      payload["transferType"].(string),
 		TimeStamp: time.Now(),
 		Status:    models.TransferPending,
 	}
@@ -214,7 +214,7 @@ func (rm *RoomManager) freeParking(client *Client, message Message) error {
 		return fmt.Errorf("failed to get player details: %w", err)
 	}
 
-	actionType := payload["type"].(string)
+	actionType := payload["freeParkingType"].(string)
 	var notification string
 
 	session, err := config.DB.Client().StartSession()
