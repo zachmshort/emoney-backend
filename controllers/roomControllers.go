@@ -62,19 +62,18 @@ func CreateRoom(c *gin.Context) {
 	var interfaceSlice []interface{}
 	for i := range config.DefaultProperties {
 		properties[i] = models.Property{
-			ID:            primitive.NewObjectID(),
-			RoomID:        roomID,
-			PropertyIndex: i,
-			Houses:        0,
-			Color:         config.DefaultProperties[i].Color,
-			Price:         config.DefaultProperties[i].Price,
-			Group:         config.DefaultProperties[i].Group,
-			Hotel:         0,
-			HouseCost:     config.DefaultProperties[i].HouseCost,
-			RentPrices:    config.DefaultProperties[i].RentPrices,
-			IsMortgaged:   false,
-			Images:        config.DefaultProperties[i].Images,
-			Name:          config.DefaultProperties[i].Name,
+			ID:               primitive.NewObjectID(),
+			RoomID:           roomID,
+			PropertyIndex:    i,
+			Color:            config.DefaultProperties[i].Color,
+			Price:            config.DefaultProperties[i].Price,
+			Group:            config.DefaultProperties[i].Group,
+			DevelopmentLevel: 0,
+			HouseCost:        config.DefaultProperties[i].HouseCost,
+			RentPrices:       config.DefaultProperties[i].RentPrices,
+			IsMortgaged:      false,
+			Images:           config.DefaultProperties[i].Images,
+			Name:             config.DefaultProperties[i].Name,
 		}
 		interfaceSlice = append(interfaceSlice, properties[i])
 	}

@@ -28,11 +28,10 @@ func HandleHotelManagement(roomObjID primitive.ObjectID, manageType string, prop
 		switch manageType {
 		case "ADD_HOTELS":
 			update = bson.M{
-				"$set": bson.M{"houses": 0},
-				"$inc": bson.M{"hotel": 1},
+				"$set": bson.M{"developmentLevel": 5},
 			}
 		case "REMOVE_HOTELS":
-			update = bson.M{"$inc": bson.M{"hotel": -1}}
+			update = bson.M{"$set": bson.M{"developmentLevel": 5}}
 		default:
 			return fmt.Errorf("invalid management type: %s", manageType)
 		}
@@ -58,9 +57,9 @@ func HandleHouseManagement(roomObjID primitive.ObjectID, manageType string, prop
 		update := bson.M{}
 		switch manageType {
 		case "ADD_HOUSES":
-			update = bson.M{"$set": bson.M{"houses": detail.Count}}
+			update = bson.M{"$set": bson.M{"developmentLevel": detail.Count}}
 		case "REMOVE_HOUSES":
-			update = bson.M{"$set": bson.M{"houses": detail.Count}}
+			update = bson.M{"$set": bson.M{"developmentLevel": detail.Count}}
 		default:
 			return fmt.Errorf("invalid management type: %s", manageType)
 		}
