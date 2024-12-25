@@ -407,10 +407,8 @@ func (rm *RoomManager) handleManageProperties(client *Client, message Message) e
 	manageType := payload["managementType"].(string)
 
 	switch manageType {
-	case "ADD_HOUSES", "REMOVE_HOUSES":
+	case "HOUSES":
 		err = manager.HandleHouseManagement(roomObjID, manageType, properties)
-	case "ADD_HOTELS", "REMOVE_HOTELS":
-		err = manager.HandleHotelManagement(roomObjID, manageType, properties)
 	case "MORTGAGE", "UNMORTGAGE", "SELL":
 		err = manager.HandlePropertySaleMortgage(roomObjID, manageType, properties)
 	default:
