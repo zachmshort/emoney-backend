@@ -13,38 +13,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func HandleHotelManagement(roomObjID primitive.ObjectID, manageType string, propertyDetails models.PropertyDetails) error {
-	propertyColl := config.DB.Collection("Property")
-
-	for _, detail := range propertyDetails {
-		propertyObjID, err := primitive.ObjectIDFromHex(detail.PropertyID)
-		if err != nil {
-			return fmt.Errorf("invalid property ID: %s", detail.PropertyID)
-		}
-
-		filter := bson.M{"_id": propertyObjID, "roomId": roomObjID}
-		update := bson.M{}
-
-		switch manageType {
-		case "ADD_HOTELS":
-			update = bson.M{
-				"$set": bson.M{"developmentLevel": 5},
-			}
-		case "REMOVE_HOTELS":
-			update = bson.M{"$set": bson.M{"developmentLevel": 5}}
-		default:
-			return fmt.Errorf("invalid management type: %s", manageType)
-		}
-
-		_, err = propertyColl.UpdateOne(context.TODO(), filter, update)
-		if err != nil {
-			return fmt.Errorf("failed to update property: %w", err)
-		}
-	}
-
-	return nil
-}
-
 func HandleHouseManagement(roomObjID primitive.ObjectID, manageType string, propertyDetails models.PropertyDetails) error {
 	propertyColl := config.DB.Collection("Property")
 
@@ -54,15 +22,7 @@ func HandleHouseManagement(roomObjID primitive.ObjectID, manageType string, prop
 			return fmt.Errorf("invalid property ID: %s", detail.PropertyID)
 		}
 		filter := bson.M{"_id": propertyObjID, "roomId": roomObjID}
-		update := bson.M{}
-		switch manageType {
-		case "ADD_HOUSES":
-			update = bson.M{"$set": bson.M{"developmentLevel": detail.Count}}
-		case "REMOVE_HOUSES":
-			update = bson.M{"$set": bson.M{"developmentLevel": detail.Count}}
-		default:
-			return fmt.Errorf("invalid management type: %s", manageType)
-		}
+		update := bson.M{"$set": bson.M{"developmentLevel": detail.Count}}
 
 		_, err = propertyColl.UpdateOne(context.TODO(), filter, update)
 		if err != nil {

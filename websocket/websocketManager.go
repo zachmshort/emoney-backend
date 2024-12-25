@@ -420,6 +420,7 @@ func (rm *RoomManager) handleManageProperties(client *Client, message Message) e
 	if err != nil {
 		return err
 	}
+
 	err = manager.UpdatePlayerBalance(playerID, amount)
 	if err != nil {
 		return err
@@ -496,6 +497,7 @@ func (rm *RoomManager) handleManageProperties(client *Client, message Message) e
 		preposition,
 		mType,
 	)
+
 	rm.CreateEventHistory(notification, roomObjID)
 	rm.Broadcast(client.Room, Message{
 		Type: "MANAGE_PROPERTIES",
@@ -503,8 +505,6 @@ func (rm *RoomManager) handleManageProperties(client *Client, message Message) e
 			"notification": notification,
 		},
 	})
-	log.Printf("Broadcast complete to room: %s", client.Room)
-
 	return nil
 }
 
