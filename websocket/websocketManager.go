@@ -444,13 +444,50 @@ func (rm *RoomManager) handleManageProperties(client *Client, message Message) e
 		return fmt.Errorf("failed to get target player details: %w", err)
 	}
 
-	// absAmount := amount
-	// if amount < 0 {
-	// 	absAmount = -amount
-	// }
+	absAmount := amount
+	if amount < 0 {
+		if manageType == "HOUSES" {
+			manageType = "SELL"
+		}
+		absAmount = -amount
+	} else if manageType == "HOUSES" {
+		manageType = "BUY"
+	}
 
-	notification := fmt.Sprintf("%s bought/sold property",
+	var action, preposition, mType string
+
+	switch manageType {
+	case "MORTGAGE":
+		action = "received"
+		preposition = "for mortgaging"
+		mType = "property"
+	case "UNMORTGAGE":
+		action = "paid"
+		preposition = "to unmortgage"
+		mType = "property"
+	case "BUY":
+		action = "spent"
+		preposition = "to build"
+		mType = "property"
+	case "SELL":
+		action = "received"
+		preposition = "for selling"
+		mType = "property"
+	default:
+		return fmt.Errorf("unknown manageType: %s", manageType)
+	}
+
+	var totalCount int
+	for _, property := range properties {
+		totalCount += property.Count
+	}
+
+	notification := fmt.Sprintf("%s %s $%d %s %s",
 		targetPlayer.Name,
+		action,
+		absAmount,
+		preposition,
+		mType,
 	)
 
 	rm.CreateEventHistory(notification, roomObjID)
@@ -482,7 +519,6 @@ func (rm *RoomManager) CreateEventHistory(notification string, roomId primitive.
 	default:
 		eventType = []string{"#6b7280", "ℹ️"}
 	}
-
 	eventHistory := models.EventHistory{
 		ID:        primitive.NewObjectID(),
 		TimeStamp: time.Now(),
