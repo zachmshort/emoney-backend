@@ -467,12 +467,12 @@ func (rm *RoomManager) handleManageProperties(client *Client, message Message) e
 		mType = "property"
 	case "BUY":
 		action = "spent"
-		preposition = "to build"
-		mType = "property"
+		preposition = "to develop"
+		mType = "properties"
 	case "SELL":
 		action = "received"
-		preposition = "for selling"
-		mType = "property"
+		preposition = "for selling development"
+		mType = "on properties"
 	default:
 		return fmt.Errorf("unknown manageType: %s", manageType)
 	}
