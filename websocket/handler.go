@@ -30,7 +30,6 @@ var (
 
 func HandleWebSocket(c *gin.Context) {
 	roomCode := c.Param("code")
-	log.Printf("WebSocket connection attempt for room: %s", roomCode)
 
 	if roomCode == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Room code required"})
@@ -50,11 +49,9 @@ func HandleWebSocket(c *gin.Context) {
 		PlayerName: "",
 	}
 
-	log.Printf("New client connected to room %s", roomCode)
 	Manager.AddClient(client)
 
 	defer func() {
-		log.Printf("Client disconnecting from room %s", roomCode)
 		Manager.RemoveClient(client)
 		conn.Close()
 		Manager.Broadcast(roomCode, Message{
@@ -71,7 +68,6 @@ func HandleWebSocket(c *gin.Context) {
 		if err != nil {
 			break
 		}
-		log.Printf("Received message type: %s with payload: %+v", message.Type, message.Payload)
 
 		switch message.Type {
 		case "JOIN":
@@ -104,46 +100,32 @@ func HandleWebSocket(c *gin.Context) {
 				}
 			}
 		case "PURCHASE_PROPERTY":
-			log.Printf("Entered purchase property")
 			if err := Manager.handlePropertyPurchase(client, message); err != nil {
-				log.Printf("Purchase error: %v", err)
 				conn.WriteJSON(Message{
 					Type:    "ERROR",
 					Payload: err.Error(),
 				})
-			} else {
-				log.Printf("Purchase successful")
 			}
 		case "FREE_PARKING":
-			log.Printf("Entered add to free parking")
 			if err := Manager.freeParking(client, message); err != nil {
-				log.Printf("Purchase error: %v", err)
 				conn.WriteJSON(Message{
 					Type:    "ERROR",
 					Payload: err.Error(),
 				})
-			} else {
-				log.Printf("Purchase successful")
 			}
 		case "BANKER_TRANSACTION":
-			log.Printf("Entered bank transaction")
 			if err := Manager.handleBankTransaction(client, message); err != nil {
 				conn.WriteJSON(Message{
 					Type:    "ERROR",
 					Payload: err.Error(),
 				})
-			} else {
-				log.Printf("Transfer successful")
 			}
 		case "TRANSFER":
 			if err := Manager.handleTransfer(client, message); err != nil {
-				log.Printf("Transfer error: %v", err)
 				conn.WriteJSON(Message{
 					Type:    "ERROR",
 					Payload: err.Error(),
 				})
-			} else {
-				log.Printf("Transfer successful")
 			}
 		case "MANAGE_PROPERTIES":
 			if err := Manager.handleManageProperties(client, message); err != nil {
@@ -151,8 +133,6 @@ func HandleWebSocket(c *gin.Context) {
 					Type:    "ERROR",
 					Payload: err.Error(),
 				})
-			} else {
-				log.Printf("Property manage successful")
 			}
 		}
 	}

@@ -256,6 +256,7 @@ func (rm *RoomManager) freeParking(client *Client, message Message) error {
 
 	return nil
 }
+
 func (rm *RoomManager) handlePropertyPurchase(client *Client, message Message) error {
 	payload, ok := message.Payload.(map[string]interface{})
 	if !ok {
