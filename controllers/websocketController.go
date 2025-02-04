@@ -1,4 +1,3 @@
-// controllers/wsController.go
 package controllers
 
 import (

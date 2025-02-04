@@ -16,10 +16,16 @@ import (
 func CreateRoom(c *gin.Context) {
 
 	var requestBody struct {
-		Name     string `json:"name" binding:"required"`
-		RoomName string `json:"roomName" binding:"required"`
-		Code     string `json:"code" binding:"required"`
-		Color    string `json:"color" binding:"required"`
+		Name         string `json:"name" binding:"required"`
+		RoomName     string `json:"roomName" binding:"required"`
+		Code         string `json:"code" binding:"required"`
+		Color        string `json:"color" binding:"required"`
+		StartingCash int    `json:"startingCash"`
+	}
+
+	var startingCash int
+	if requestBody.StartingCash == 0 {
+		startingCash = 1500
 	}
 
 	if err := c.ShouldBindJSON(&requestBody); err != nil {
@@ -31,14 +37,13 @@ func CreateRoom(c *gin.Context) {
 	playerID := primitive.NewObjectID()
 
 	room := models.Room{
-		ID:          roomID,
-		Name:        requestBody.RoomName,
-		RoomCode:    requestBody.Code,
-		BankerId:    playerID,
-		FreeParking: 0,
-		IsActive:    true,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
+		ID:           roomID,
+		Name:         requestBody.RoomName,
+		RoomCode:     requestBody.Code,
+		StartingCash: startingCash,
+		FreeParking:  0,
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
 	}
 
 	banker := models.Player{
@@ -46,7 +51,7 @@ func CreateRoom(c *gin.Context) {
 		RoomID:   roomID,
 		IsBanker: true,
 		IsActive: true,
-		Balance:  1500,
+		Balance:  requestBody.StartingCash,
 		Name:     requestBody.Name,
 		Color:    requestBody.Color,
 	}
@@ -153,7 +158,7 @@ func JoinRoom(c *gin.Context) {
 	}
 
 	playerColl := config.DB.Collection("Player")
-	existingPlayer, err := playerColl.CountDocuments(c, bson.M{
+	existingPlayer, _ := playerColl.CountDocuments(c, bson.M{
 		"roomId": room.ID,
 		"$or": []bson.M{
 			{"name": requestBody.Name},
@@ -172,7 +177,7 @@ func JoinRoom(c *gin.Context) {
 		RoomID:   room.ID,
 		IsBanker: false,
 		IsActive: true,
-		Balance:  1500,
+		Balance:  room.StartingCash,
 		Name:     requestBody.Name,
 		Color:    requestBody.Color,
 	}
