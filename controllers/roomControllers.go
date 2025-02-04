@@ -37,13 +37,17 @@ func CreateRoom(c *gin.Context) {
 	playerID := primitive.NewObjectID()
 
 	room := models.Room{
-		ID:           roomID,
-		Name:         requestBody.RoomName,
-		RoomCode:     requestBody.Code,
-		StartingCash: startingCash,
-		FreeParking:  0,
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
+		ID:       roomID,
+		Name:     requestBody.RoomName,
+		RoomCode: requestBody.Code,
+		RoomRules: models.RoomRules{
+			StartingCash: startingCash,
+			MaxHouses:    32,
+			MaxHotels:    12,
+		},
+		FreeParking: 0,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
 	}
 
 	banker := models.Player{
@@ -177,7 +181,7 @@ func JoinRoom(c *gin.Context) {
 		RoomID:   room.ID,
 		IsBanker: false,
 		IsActive: true,
-		Balance:  room.StartingCash,
+		Balance:  room.RoomRules.StartingCash,
 		Name:     requestBody.Name,
 		Color:    requestBody.Color,
 	}
