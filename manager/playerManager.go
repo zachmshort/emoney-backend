@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/zachmshort/monopoly-backend/config"
+	"github.com/zachmshort/emoney-backend/config"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )

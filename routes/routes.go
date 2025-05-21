@@ -7,27 +7,33 @@ import (
 )
 
 func Routes(r *gin.Engine) {
-	r.GET("/ws/room/:code", websocket.HandleWebSocket)
+	r.GET("/ws/rooms/:code", websocket.HandleWebSocket)
 
-	room := r.Group("/room")
+	rooms := r.Group("/rooms")
 	{
-		room.POST("", controllers.CreateRoom)
-		room.POST("/join", controllers.JoinRoom)
+		rooms.POST("", controllers.CreateRoom)                   
 
-		room.GET("/:code/players", controllers.GetPlayersInRoom)
+		room := rooms.Group("/:code")
+		room.GET("/players", controllers.GetPlayersInRoom)
+		room.GET("/properties", controllers.GetAvailableProperties) 
 
-		room.GET("/:code/properties", controllers.GetAvailableProperties)
-	}
-
-	player := r.Group("/player")
-	{
-		player.GET("/:playerId/details", controllers.GetPlayerDetails)
-
-		playerProperty := player.Group("/:playerId/property/:propertyId")
+		players := room.Group("/players")
 		{
-			playerProperty.POST("", controllers.AddProperty)
-			playerProperty.DELETE("", controllers.RemoveProperty)
-			playerProperty.POST("/mortgage", controllers.MortgageProperty)
+			players.POST("", controllers.JoinRoom) 
+			player := players.Group("/:playerId")
+
+			{
+				player.GET("", controllers.GetPlayerDetails) 
+
+				properties := player.Group("/properties")
+				{
+					property := properties.Group("/:propertyId")
+
+					property.POST("/mortgage", controllers.MortgageProperty)
+					property.POST("", controllers.AddProperty)             
+					property.DELETE("", controllers.RemoveProperty)       
+				}
+			}
 		}
 	}
 }

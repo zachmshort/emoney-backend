@@ -7,8 +7,8 @@ import (
 	"log"
 	"strings"
 
-	"github.com/zachmshort/monopoly-backend/config"
-	"github.com/zachmshort/monopoly-backend/models"
+	"github.com/zachmshort/emoney-backend/config"
+	"github.com/zachmshort/emoney-backend/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )

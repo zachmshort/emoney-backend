@@ -19,29 +19,19 @@ func main() {
 
 	r := gin.Default()
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"*"},
+		AllowOrigins: []string{
+			"http://localhost:3000",
+			"https://emoney.club",
+		},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Authorization", "Content-Type", "Upgrade", "Connection"},
 		AllowWebSockets:  true,
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
-	r.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"status": "ok",
-			"environment": map[string]bool{
-				"DATABASE_URL":  os.Getenv("DATABASE_URL") != "",
-				"DATABASE_NAME": os.Getenv("DATABASE_NAME") != "",
-			},
-		})
-	})
 
 	config.ConnectDB()
-	routes.PropertyRoutes(r)
-	routes.RoomRoutes(r)
-	routes.PlayerRoutes(r)
-	routes.TransferRoutes(r)
-	routes.WebSocketRoutes(r)
+	routes.Routes(r)
 
 	port := os.Getenv("PORT")
 	if port == "" {

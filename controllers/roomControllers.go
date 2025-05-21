@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/zachmshort/monopoly-backend/config"
-	"github.com/zachmshort/monopoly-backend/models"
+	"github.com/zachmshort/emoney-backend/config"
+	"github.com/zachmshort/emoney-backend/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -135,14 +135,14 @@ func CreateRoom(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"roomId":   room.ID,
-		"roomCode": room.RoomCode,
+		"roomCode": room.Code,
 		"playerId": banker.ID,
 	})
 }
 
 func JoinRoom(c *gin.Context) {
 	var requestBody struct {
-		RoomCode string `json:"roomCode" binding:"required"`
+		RoomCode     string `json:"roomCode" binding:"required"`
 		Name     string `json:"name" binding:"required"`
 		Color    string `json:"color" binding:"required"`
 	}
