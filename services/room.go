@@ -10,7 +10,7 @@ import (
 
 var RoomCollection *mongo.Collection
 
-func CreateRoomInDB(name string, code string) (interface{}, error) {
+func CreateRoomInDB(name string, code string) (any, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 

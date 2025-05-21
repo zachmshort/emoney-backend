@@ -1,4 +1,4 @@
-module github.com/zachmshort/monopoly-backend
+module github.com/zachmshort/emoney-backend
 
 go 1.23.2
 

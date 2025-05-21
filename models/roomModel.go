@@ -9,7 +9,7 @@ import (
 type Room struct {
 	ID          primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	Name        string             `bson:"name" json:"name"`
-	RoomCode    string             `bson:"roomCode" json:"roomCode"`
+	Code    		string             `bson:"code" json:"code"`
 	FreeParking int                `bson:"freeParking" json:"freeParking"`
 	RoomRules   RoomRules          `bson:"roomRules" json:"roomRules"`
 	CreatedAt   time.Time          `bson:"createdAt" json:"createdAt"`

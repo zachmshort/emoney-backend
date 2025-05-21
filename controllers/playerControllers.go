@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/zachmshort/monopoly-backend/config"
-	"github.com/zachmshort/monopoly-backend/models"
+	"github.com/zachmshort/emoney-backend/config"
+	"github.com/zachmshort/emoney-backend/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -15,7 +15,7 @@ import (
 )
 
 func GetPlayersInRoom(c *gin.Context) {
-	roomCode := c.Param("roomCode")
+	code := c.Param("code")
 	playerId := c.Query("playerId")
 
 	roomCollection := config.DB.Collection("Room")
@@ -23,7 +23,7 @@ func GetPlayersInRoom(c *gin.Context) {
 	eventHistoryCollection := config.DB.Collection("EventHistory")
 
 	var room models.Room
-	err := roomCollection.FindOne(c, bson.M{"roomCode": roomCode}).Decode(&room)
+	err := roomCollection.FindOne(c, bson.M{"code": code}).Decode(&room)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
 		return
@@ -79,6 +79,7 @@ func GetPlayersInRoom(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode players"})
 		return
 	}
+
 	response := gin.H{
 		"players":      players,
 		"room":         room,

@@ -7,8 +7,8 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/zachmshort/monopoly-backend/config"
-	"github.com/zachmshort/monopoly-backend/routes"
+	"github.com/zachmshort/emoney-backend/config"
+	"github.com/zachmshort/emoney-backend/routes"
 )
 
 func main() {

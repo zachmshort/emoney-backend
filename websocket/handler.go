@@ -7,7 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"github.com/zachmshort/monopoly-backend/controllers"
+	"github.com/zachmshort/emoney-backend/controllers"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 

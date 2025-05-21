@@ -39,7 +39,7 @@ func CreateRoom(c *gin.Context) {
 	room := models.Room{
 		ID:       roomID,
 		Name:     requestBody.RoomName,
-		RoomCode: requestBody.Code,
+		Code: requestBody.Code,
 		RoomRules: models.RoomRules{
 			StartingCash: startingCash,
 			MaxHouses:    32,
