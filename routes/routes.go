@@ -17,6 +17,7 @@ func Routes(r *gin.Engine) {
 		room := rooms.Group("/:code")
 		room.GET("/players", controllers.GetPlayersInRoom)
 		room.GET("/properties", controllers.GetAvailableProperties)
+		room.GET("/exists", controllers.CheckIfRoomCodeExists)
 
 		players := room.Group("/players")
 		{

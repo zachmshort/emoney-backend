@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"time"
@@ -212,4 +213,21 @@ func JoinRoom(c *gin.Context) {
 		"room":     room,
 		"roomCode": room.Code,
 	})
+}
+
+func CheckIfRoomCodeExists(c *gin.Context) {
+	code := c.Param("code")
+
+	roomCollection := config.DB.Collection("Room")
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	count, err := roomCollection.CountDocuments(ctx, bson.M{"code": code})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "There was an error while fetching existing rooms"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"exists": count > 0})
 }
