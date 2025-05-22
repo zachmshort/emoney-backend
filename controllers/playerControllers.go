@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/zachmshort/emoney-backend/config"
@@ -223,4 +224,20 @@ func UpdatePlayerBalanceByBanker(roomID primitive.ObjectID, playerID primitive.O
 	})
 
 	return err
+}
+
+func DeleteRoom(c *gin.Context) {
+	code := c.Param("code")
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	doc, err := config.DB.Collection("Room").DeleteOne(ctx, bson.M{"code": code})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error deleting room"})
+	}
+	fmt.Println(doc)
+
+	c.JSON(http.StatusOK, gin.H{"message": "Room deleted sucessfully"})
+
 }
