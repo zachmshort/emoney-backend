@@ -1,10 +1,10 @@
-# 🏦 E-Money Backend (Go)
+# E-Money Backend (Go)
 
 This is the backend for **E-Money**, a digital Monopoly companion that handles player state, room logic, properties, and real-time WebSocket communication. It's built using Go and [Gin](https://github.com/gin-gonic/gin) for routing.
 
 ---
 
-## 🔌 API Endpoints
+## API Endpoints
 
 All API routes are prefixed with `/v1`.
 
@@ -15,7 +15,7 @@ All API routes are prefixed with `/v1`.
 
 ---
 
-### 🏠 Rooms
+### Rooms
 
 - `POST /v1/rooms`  
   Create a new room.
@@ -28,7 +28,7 @@ All API routes are prefixed with `/v1`.
 
 ---
 
-### 🧍 Players
+### Players
 
 - `POST /v1/rooms/:code/players`  
   Join a room as a new player.
@@ -38,7 +38,7 @@ All API routes are prefixed with `/v1`.
 
 ---
 
-### 🏘️ Properties
+### Properties
 
 - `POST /v1/rooms/:code/players/:playerId/properties/:propertyId`  
   Add a property to a player.
@@ -51,7 +51,7 @@ All API routes are prefixed with `/v1`.
 
 ---
 
-## 🧪 Local Development
+## Local Development
 
 ### Prerequisites
 
