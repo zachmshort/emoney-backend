@@ -60,13 +60,13 @@ func AssignOwnerShipProperty(propertyID, buyerID primitive.ObjectID) error {
 }
 
 func GetAvailableProperties(c *gin.Context) {
-	roomCode := c.Param("roomCode")
+	roomCode := c.Param("code")
 
 	roomCollection := config.DB.Collection("Room")
 	var room models.Room
-	err := roomCollection.FindOne(c, bson.M{"roomCode": roomCode}).Decode(&room)
+	err := roomCollection.FindOne(c, bson.M{"code": roomCode}).Decode(&room)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
+		c.JSON(http.StatusNoContent, gin.H{"error": "Room was not found with the following code"})
 		return
 	}
 

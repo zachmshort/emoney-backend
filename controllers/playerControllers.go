@@ -87,7 +87,7 @@ func GetPlayersInRoom(c *gin.Context) {
 	}
 
 	if existingPlayer != nil {
-		response["existingPlayer"] = map[string]interface{}{
+		response["existingPlayer"] = map[string]any{
 			"id":      existingPlayer.ID.Hex(),
 			"name":    existingPlayer.Name,
 			"color":   existingPlayer.Color,
@@ -122,7 +122,7 @@ func GetPlayerDetails(c *gin.Context) {
 		return
 	}
 
-	response := map[string]interface{}{
+	response := map[string]any{
 		"player":     player,
 		"properties": properties,
 	}
@@ -147,7 +147,7 @@ func UpdateFreeParkingBalance(roomID primitive.ObjectID, amount int, isAdd bool,
 	}
 	defer session.EndSession(context.Background())
 
-	_, err = session.WithTransaction(context.Background(), func(ctx mongo.SessionContext) (interface{}, error) {
+	_, err = session.WithTransaction(context.Background(), func(ctx mongo.SessionContext) (any, error) {
 		freeParkingChange := amount
 		if !isAdd {
 			freeParkingChange = -amount
@@ -186,7 +186,7 @@ func UpdatePlayerBalanceByBanker(roomID primitive.ObjectID, playerID primitive.O
 	}
 	defer session.EndSession(context.Background())
 
-	_, err = session.WithTransaction(context.Background(), func(ctx mongo.SessionContext) (interface{}, error) {
+	_, err = session.WithTransaction(context.Background(), func(ctx mongo.SessionContext) (any, error) {
 		balanceChange := amount
 		if !isAdd {
 			balanceChange = -amount

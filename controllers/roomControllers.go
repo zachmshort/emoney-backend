@@ -16,11 +16,13 @@ import (
 func CreateRoom(c *gin.Context) {
 
 	var requestBody struct {
-		Name         string `json:"name" binding:"required"`
+		PlayerName   string `json:"playerName" binding:"required"`
 		RoomName     string `json:"roomName" binding:"required"`
-		Code         string `json:"code" binding:"required"`
-		Color        string `json:"color" binding:"required"`
+		RoomCode     string `json:"roomCode" binding:"required"`
+		PlayerColor  string `json:"playerColor" binding:"required"`
 		StartingCash int    `json:"startingCash"`
+		Houses       int    `json:"houses"`
+		Hotels       int    `json:"hotels"`
 	}
 
 	var startingCash int
@@ -37,13 +39,13 @@ func CreateRoom(c *gin.Context) {
 	playerID := primitive.NewObjectID()
 
 	room := models.Room{
-		ID:       roomID,
-		Name:     requestBody.RoomName,
-		Code: requestBody.Code,
+		ID:   roomID,
+		Name: requestBody.RoomName,
+		Code: requestBody.RoomCode,
 		RoomRules: models.RoomRules{
 			StartingCash: startingCash,
-			MaxHouses:    32,
-			MaxHotels:    12,
+			MaxHouses:    requestBody.Houses,
+			MaxHotels:    requestBody.Hotels,
 		},
 		FreeParking: 0,
 		CreatedAt:   time.Now(),
@@ -56,8 +58,8 @@ func CreateRoom(c *gin.Context) {
 		IsBanker: true,
 		IsActive: true,
 		Balance:  requestBody.StartingCash,
-		Name:     requestBody.Name,
-		Color:    requestBody.Color,
+		Name:     requestBody.PlayerName,
+		Color:    requestBody.PlayerColor,
 	}
 
 	eventHistory := models.EventHistory{
@@ -68,7 +70,7 @@ func CreateRoom(c *gin.Context) {
 	}
 
 	properties := make([]models.Property, len(config.DefaultProperties))
-	var interfaceSlice []interface{}
+	var interfaceSlice []any
 	for i := range config.DefaultProperties {
 		properties[i] = models.Property{
 			ID:               primitive.NewObjectID(),
@@ -142,9 +144,9 @@ func CreateRoom(c *gin.Context) {
 
 func JoinRoom(c *gin.Context) {
 	var requestBody struct {
-		RoomCode     string `json:"roomCode" binding:"required"`
-		Name     string `json:"name" binding:"required"`
-		Color    string `json:"color" binding:"required"`
+		RoomCode    string `json:"roomCode" binding:"required"`
+		PlayerName  string `json:"playerName" binding:"required"`
+		PlayerColor string `json:"playerColor" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&requestBody); err != nil {
@@ -154,22 +156,22 @@ func JoinRoom(c *gin.Context) {
 
 	roomColl := config.DB.Collection("Room")
 	var room models.Room
-	err := roomColl.FindOne(c, bson.M{"roomCode": requestBody.RoomCode}).Decode(&room)
+	err := roomColl.FindOne(c, bson.M{"code": requestBody.RoomCode}).Decode(&room)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
 		return
 	}
 
 	playerColl := config.DB.Collection("Player")
-	existingPlayer, _ := playerColl.CountDocuments(c, bson.M{
+	existingPlayerCount, _ := playerColl.CountDocuments(c, bson.M{
 		"roomId": room.ID,
 		"$or": []bson.M{
-			{"name": requestBody.Name},
-			{"color": requestBody.Color},
+			{"name": requestBody.PlayerName},
+			{"color": requestBody.PlayerColor},
 		},
 	})
 
-	if existingPlayer > 0 {
+	if existingPlayerCount > 0 {
 		c.JSON(http.StatusConflict, gin.H{"error": "Name or color already taken"})
 		return
 	}
@@ -181,8 +183,8 @@ func JoinRoom(c *gin.Context) {
 		IsBanker: false,
 		IsActive: true,
 		Balance:  room.RoomRules.StartingCash,
-		Name:     requestBody.Name,
-		Color:    requestBody.Color,
+		Name:     requestBody.PlayerName,
+		Color:    requestBody.PlayerColor,
 	}
 
 	_, err = playerColl.InsertOne(c, newPlayer)
@@ -208,5 +210,6 @@ func JoinRoom(c *gin.Context) {
 		"playerId": newPlayerID.Hex(),
 		"players":  players,
 		"room":     room,
+		"roomCode": room.Code,
 	})
 }
