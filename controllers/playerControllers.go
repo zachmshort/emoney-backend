@@ -20,6 +20,7 @@ func GetPlayersInRoom(c *gin.Context) {
 
 	roomCollection := config.DB.Collection("Room")
 	playerCollection := config.DB.Collection("Player")
+	propertyCollection := config.DB.Collection("Property")
 	eventHistoryCollection := config.DB.Collection("EventHistory")
 
 	var room models.Room
@@ -62,21 +63,38 @@ func GetPlayersInRoom(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get players"})
 		return
 	}
-
 	if err = cursor.All(c, &players); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode players"})
 		return
 	}
+
+	for i, player := range players {
+		var properties []models.Property
+		propCursor, err := propertyCollection.Find(c, bson.M{
+			"roomId":   room.ID,
+			"playerId": player.ID,
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get properties"})
+			return
+		}
+		if err := propCursor.All(c, &properties); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode properties"})
+			return
+		}
+
+		players[i].Properties = properties
+	}
+
 	var eventHistory []models.EventHistory
 	opts := options.Find().SetSort(bson.D{{Key: "timestamp", Value: -1}})
 	cursor, err = eventHistoryCollection.Find(c, query, opts)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get players"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get event history"})
 		return
 	}
-
 	if err = cursor.All(c, &eventHistory); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode players"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode event history"})
 		return
 	}
 
