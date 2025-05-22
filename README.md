@@ -1,4 +1,4 @@
-# E-Money Backend (Go)
+# E-Money Backend
 
 This is the backend for **E-Money**, a digital Monopoly companion that handles player state, room logic, properties, and real-time WebSocket communication. It's built using Go and [Gin](https://github.com/gin-gonic/gin) for routing.
 
